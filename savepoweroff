@@ -1,0 +1,67 @@
+#!/bin/bash -
+#===============================================================================
+#
+#          FILE: test2.sh
+#
+#         USAGE: ./test2.sh
+#
+#   DESCRIPTION:
+#
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Andreas Böttger (aboettger), andreas.boettger@gmx.de
+#  ORGANIZATION:
+#       CREATED: 12.04.2014 23:53
+#      REVISION:  ---
+#===============================================================================
+
+#set -o nounset                              # Treat unset variables as an error
+#set -o errexit
+
+usersList=$(/usr/bin/users)
+newUsersList=(${usersList[*]})
+orig_length=${#usersList[@]}
+
+for (( i=0; i < orig_length; i++ )); do
+  # echo "$i: ${usersList[i]}"
+  user="${usersList[i]}"
+  #echo $user
+  if [ "$user" == "(unknown)" ]
+  then
+    unset newUsersList[i]
+  fi
+done
+
+pidrsync=$(ps -C rsync -o pid=)
+pidaria2c=$(ps -C aria2c -o pid=)
+# Irgendwie besitzt die GnomeShell manchmal(?) keinen angemeldeten Benutzer in `users`?
+#init_user=$(ps xa | grep -v "grep" | grep "init --user" | awk '{ print $1 }')
+init_user_pid=$(pgrep -f 'init --user')
+
+secUp=$(awk '{print $1 * 1000}' /proc/uptime)
+userLen=${#newUsersList[@]}
+loggedin=${newUsersList[*]}
+
+echo "PID [rsync]: $pidrsync"
+echo "PID [aria2c]: $pidaria2c"
+echo "PID [init --user]: $init_user_pid"
+echo "Users: $userLen"
+echo "Angemeldet: $loggedin"
+echo "Uptime (s): $(uptime -p) ($secUp / 3600000)"
+echo ""
+
+# mehr als eine Stunde uptime
+if [ "$secUp" -gt 3600000 ] && [ "$pidrsync" == "" ] && [ "$pidaria2c" == "" ]
+then
+  if [ $userLen -eq 0 ] && [ "$init_user_pid" == "" ]
+  then
+    /sbin/shutdown -P now
+    echo "shutdown"
+  else
+    echo "kein shutdown (users > 0 | PID [init --user] > 0)"
+  fi
+else
+  echo "kein shutdown (uptime < 3600000 | PID [rsync] > 0 | PID [aria2c] > 0)"
+fi

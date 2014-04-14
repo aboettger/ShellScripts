@@ -1,0 +1,6 @@
+#!/bin/bash
+next=$(date -d "5 +24 hours" +%s)
+#echo $next
+#echo $next > /sys/class/rtc/rtc0/wakealarm
+sh -c "echo $next > /sys/class/rtc/rtc0/wakealarm"
+cat /proc/driver/rtc

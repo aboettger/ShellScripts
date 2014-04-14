@@ -9,7 +9,8 @@
 #		 hinzu, wenn dieses Verzeichnis ein JPG oder ein PNG enthält.
 #		 Bereits vorhandene APIC Frames werden gelöscht.
 #		 PNGs werden bevorzugt behandelt. Nach dem Hinzufügen werden
-#		 die Bilder gelöscht.
+#		 die Bilder gelöscht. Der Name der Bilder muss 'cover.png'
+#		 oder 'cover.jpg' sein
 # 
 #       OPTIONS: ---
 #  REQUIREMENTS: ---

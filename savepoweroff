@@ -1,9 +1,9 @@
 #!/bin/bash -
 #===============================================================================
 #
-#          FILE: test2.sh
+#          FILE: savepoweroff
 #
-#         USAGE: ./test2.sh
+#         USAGE: ./savepoweroff
 #
 #   DESCRIPTION:
 #

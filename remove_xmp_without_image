@@ -1,0 +1,42 @@
+#!/bin/bash -
+#===============================================================================
+#
+#          FILE: remove_xmp_without_image.sh
+#
+#         USAGE: remove_xmp_without_image.sh suchpfad
+#
+#   DESCRIPTION:
+#
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Andreas Böttger (aboettger), andreas.boettger@gmx.de
+#  ORGANIZATION:
+#       CREATED: 15.04.2014 20:00
+#      REVISION:  ---
+#===============================================================================
+
+#set -o nounset                              # Treat unset variables as an error
+
+if [ "$1" == "" ]
+  then
+    echo "USAGE: remove_xmp_without_image.sh suchpfad"
+    exit 1
+fi
+
+shopt -s nullglob
+shopt -s nocaseglob
+find "$1" -depth  -type d | { while read -r D;
+  do
+    find "$D" -type f -maxdepth 1 -name '*.xmp' | { while read -r xmp;
+      do
+        if [ ! -f "${xmp%.*}" ]
+        then
+          echo "xmp ($xmp) vorhanden, aber kein passendes Bild ${xmp%.*}"
+	  rm "$xmp"
+        fi
+    done }
+done }
+
+exit 0

@@ -1,23 +1,23 @@
-#!/bin/bash - 
+#!/bin/bash -
 #===============================================================================
 #
 #          FILE: add_cover_mp3
-# 
-#         USAGE: ./add_cover_mp3 
-# 
+#
+#         USAGE: ./add_cover_mp3
+#
 #   DESCRIPTION: Fügt allen MP3s in einem Verzeichnis ein Cover (APIC Frame)
 #		 hinzu, wenn dieses Verzeichnis ein JPG oder ein PNG enthält.
 #		 Bereits vorhandene APIC Frames werden gelöscht.
 #		 PNGs werden bevorzugt behandelt. Nach dem Hinzufügen werden
 #		 die Bilder gelöscht. Der Name der Bilder muss 'cover.png'
 #		 oder 'cover.jpg' sein
-# 
+#
 #       OPTIONS: ---
 #  REQUIREMENTS: eyeD3
 #          BUGS: ---
 #         NOTES: ---
 #        AUTHOR: Andreas Böttger (aboettger), andreas.boettger@gmx.de
-#  ORGANIZATION: 
+#  ORGANIZATION:
 #       CREATED: 14.04.2014 12:33
 #      REVISION:  ---
 #===============================================================================
@@ -28,6 +28,7 @@ cd
 cd Musik
 shopt -s nullglob
 shopt -s nocaseglob
+
 find -depth  -type d | { while read -r D;
   do
     JPG="$D/cover.jpg"
@@ -53,10 +54,13 @@ find -depth  -type d | { while read -r D;
         if [ -f "$JPG" ]
         then
           echo "JPG in $D"
-	  find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
+          find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
           find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$D"/cover.jpg~FRONT_COVER
           rm "$D"/cover.jpg
         fi
       fi
     fi
 done }
+
+
+

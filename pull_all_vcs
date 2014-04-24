@@ -1,0 +1,49 @@
+#!/bin/bash -
+#===============================================================================
+#
+#          FILE: pull_all_vcs
+#
+#         USAGE: ./pull_all_vcs
+#
+#   DESCRIPTION:
+#
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: andreas.boettger@gmx.de
+#  ORGANIZATION:
+#       CREATED: Do 24 Apr 2014 12:38:05 CEST 
+#      REVISION:  ---
+#===============================================================================
+
+# set -o nounset                              # Treat unset variables as an error
+
+red='\e[0;31m'
+green='\e[0;32m'
+NC='\e[0m' # No Color
+
+# GIT
+echo -e "${green}-------------------------${NC}"
+echo -e "${green}Checking GIT repositories${NC}"
+echo -e "${green}-------------------------${NC}"
+find ~/src -type d -name .git -print0 | xargs -0 -n 1 dirname | sort | while read line; do 
+	echo -e "$line"
+	cd "$line"
+	echo -e "${green}$(git pull)${NC}"
+	echo
+done
+
+echo
+
+# SVN
+echo -e "${green}-------------------------${NC}"
+echo -e "${green}Checking SVN repositories${NC}"
+echo -e "${green}-------------------------${NC}"
+find ~/src -type d -name .svn -print0 | xargs -0 -n 1 dirname | sort | while read line; do
+	echo -e "$line"
+	cd "$line"
+	echo -e "${green}$(svn update)${NC}"
+	echo
+done
+

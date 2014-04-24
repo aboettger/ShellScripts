@@ -33,16 +33,16 @@ find -depth  -type d | { while read -r D;
   do
     JPG="$D/cover.jpg"
     PNG="$D/cover.png"
-    mp3="$D/*.mp3"
-    
-    if [ "$mp3" != "" ] && [ "$D" != "." ]
+    mp3s=$(find "$D" -maxdepth 1 -type f -name '*.mp3' | wc -l)
+
+    if [ "$mp3s" != "0" ] && [ "$D" != "." ]
     then
       # PNGs werden bevorzugt
       if [ -f "$PNG" ]
       then
         echo "PNG in $D"
-        find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
-        find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$D"/cover.png~FRONT_COVER
+        find "$D" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
+        find "$D" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$D"/cover.png~FRONT_COVER
         
         # Wenn ein PNG vorhanden ist, dann will ich keine JPGs mehr
         if [ -f "$JPG" ]
@@ -54,8 +54,8 @@ find -depth  -type d | { while read -r D;
         if [ -f "$JPG" ]
         then
           echo "JPG in $D"
-          find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
-          find "$D" -type f -maxdepth 1 -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$D"/cover.jpg~FRONT_COVER
+          find "$D" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
+          find "$D" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$D"/cover.jpg~FRONT_COVER
           rm "$D"/cover.jpg
         fi
       fi

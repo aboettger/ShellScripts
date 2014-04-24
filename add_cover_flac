@@ -32,9 +32,9 @@ find -depth  -type d | { while read -r D;
   do
     JPG="$D/cover.jpg"
     PNG="$D/cover.png"
-    flac="$D/*.flac"
-    
-    if [ "$flac" != "" ]  && [ "$D" != "." ]
+    flacs=$(find "$D" -maxdepth 1 -type f -name '*.flac' | wc -l)
+
+    if [ "$flacs" != "0" ] && [ "$D" != "." ]
     then
       # PNGs werden bevorzugt
       if [ -f "$PNG" ]

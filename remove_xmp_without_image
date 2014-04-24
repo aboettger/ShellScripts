@@ -5,7 +5,8 @@
 #
 #         USAGE: remove_xmp_without_image.sh suchpfad
 #
-#   DESCRIPTION:
+#   DESCRIPTION: Löscht XMP-Dateien, zu denen im gleichen Verzeichnis keine Bilder
+#		 mehr existieren
 #
 #       OPTIONS: ---
 #  REQUIREMENTS: ---

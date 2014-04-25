@@ -18,45 +18,41 @@
 #         NOTES: ---
 #        AUTHOR: Andreas Böttger (aboettger), andreas.boettger@gmx.de
 #  ORGANIZATION:
-#       CREATED: 14.04.2014 12:33
+#       CREATED: 14.04.2014 12:33Fr 25 Apr 2014 18:12:15 CEST 
 #      REVISION:  ---
 #===============================================================================
 
 #set -o nounset                              # Treat unset variables as an error
 
-cd
-cd Musik
 shopt -s nullglob
 shopt -s nocaseglob
-find -depth  -type d | { while read -r D;
-  do
-    JPG="$D/cover.jpg"
-    PNG="$D/cover.png"
-    flacs=$(find "$D" -maxdepth 1 -type f -name '*.flac' | wc -l)
 
-    if [ "$flacs" != "0" ] && [ "$D" != "." ]
-    then
-      # PNGs werden bevorzugt
-      if [ -f "$PNG" ]
+add_cover() {
+  red="\e[0;31m"
+  green="\e[0;32m"
+  NC="\e[0m" # No Color
+  
+  find ~/Musik -depth -type f -name "$1"  | { while read -r image_path;
+    do
+      echo -e "${green}Cover found:${NC} $image_path"
+      dir_name=$(dirname "$image_path")
+      
+      flacs=$(find "$dir_name" -maxdepth 1 -type f -name '*.flac' | wc -l)
+      
+      echo -e "${green}FLACs found:${NC} $flacs"
+      
+      if [ "$flacs" != "0" ]
       then
-        echo "$D"
-        find "$D" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --remove --block-type=PICTURE
-        find "$D" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --import-picture-from="$D"/cover.png
+        find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --remove --block-type=PICTURE
+        find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --import-picture-from="$image_path"
         
-        # Wenn ein PNG vorhanden ist, dann will ich keine JPGs mehr
-        if [ -f "$JPG" ]
-        then
-          rm "$D"/cover.jpg
-        fi
-        rm "$D"/cover.png
-      else
-        if [ -f "$JPG" ]
-        then
-          echo "$D"
-          find "$D" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --remove --block-type=PICTURE
-          find "$D" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --import-picture-from="$D"/cover.jpg
-          rm "$D"/cover.jpg
-        fi
+        rm "$image_path"
       fi
-    fi
-done }
+      echo
+    done
+  }
+}
+
+# PNGs werden bevorzugt
+add_cover cover.png
+add_cover cover.jpg

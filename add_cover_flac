@@ -32,7 +32,7 @@ add_cover() {
   green="\e[0;32m"
   NC="\e[0m" # No Color
   
-  find ~/Musik -depth -type f -name "$1"  | { while read -r image_path;
+  find "$1" -depth -type f -name "$2"  | { while read -r image_path;
     do
       echo -e "${green}Cover found:${NC} $image_path"
       dir_name=$(dirname "$image_path")
@@ -53,6 +53,12 @@ add_cover() {
   }
 }
 
-# PNGs werden bevorzugt
-add_cover cover.png
-add_cover cover.jpg
+if [ "$1" == "" ]
+then
+  echo "Please specify a start directory."
+else
+  # PNGs werden bevorzugt
+  add_cover "$1" cover.png
+  add_cover "$1" cover.jpg
+fi
+exit 0

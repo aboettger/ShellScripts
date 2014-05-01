@@ -21,6 +21,7 @@
 
 red='\e[0;31m'
 green='\e[0;32m'
+yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
 # GIT
@@ -28,7 +29,7 @@ echo -e "${green}-------------------------${NC}"
 echo -e "${green}Checking GIT repositories${NC}"
 echo -e "${green}-------------------------${NC}"
 find ~/src -type d -name .git -print0 | xargs -0 -n 1 dirname | sort | while read line; do 
-	echo -e "$line"
+	echo -e "${yellow}$line${NC}"
 	cd "$line"
 	echo -e "${green}$(git pull)${NC}"
 	echo
@@ -41,7 +42,7 @@ echo -e "${green}-------------------------${NC}"
 echo -e "${green}Checking SVN repositories${NC}"
 echo -e "${green}-------------------------${NC}"
 find ~/src -type d -name .svn -print0 | xargs -0 -n 1 dirname | sort | while read line; do
-	echo -e "$line"
+	echo -e "${yellow}$line${NC}"
 	cd "$line"
 	echo -e "${green}$(svn update)${NC}"
 	echo

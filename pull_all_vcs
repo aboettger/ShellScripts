@@ -19,10 +19,10 @@
 
 # set -o nounset                              # Treat unset variables as an error
 
-dir="$HOME"
+rootDir="$HOME"
 if [ "$1" != "" ]
 then
-  dir=$1
+  rootDir=$(realpath "$1")
 fi
 
 red='\e[0;31m'
@@ -31,11 +31,12 @@ yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
 # GIT
-echo -e "${green}***** Checking GIT repositories in ${yellow}$dir${NC}"
+echo -e "${green}***** Checking GIT repositories in ${yellow}$rootDir${NC}"
 echo
-find "$dir" -type d -name .git -print0 | xargs -0 -n 1 dirname | sort | while read line; do 
-	echo -e "${yellow}$line${NC}"
-	cd "$line"
+find "$rootDir" -type d -name .git | sort | while read line; do
+	workingDir=$(dirname "$line")
+	echo -e "${yellow}$workingDir${NC}"
+	cd "$workingDir"
 	echo -e "${green}$(git pull)${NC}"
 	echo
 done
@@ -43,11 +44,12 @@ done
 echo
 
 # SVN
-echo -e "${green}***** Checking SVN repositories in ${yellow}$dir${NC}"
+echo -e "${green}***** Checking SVN repositories in ${yellow}$rootDir${NC}"
 echo
-find "$dir" -type d -name .svn -print0 | xargs -0 -n 1 dirname | sort | while read line; do
-	echo -e "${yellow}$line${NC}"
-	cd "$line"
+find "$rootDir" -type d -name .svn | sort | while read line; do
+	workingDir=$(dirname "$line")
+	echo -e "${yellow}$workingDir${NC}"
+	cd "$workingDir"
 	echo -e "${green}$(svn update)${NC}"
 	echo
 done

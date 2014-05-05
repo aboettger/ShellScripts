@@ -13,7 +13,7 @@
 #         NOTES: ---
 #        AUTHOR: andreas.boettger@gmx.de
 #  ORGANIZATION:
-#       CREATED: Do 24 Apr 2014 12:38:05 CEST 
+#       CREATED: Do 24 Apr 2014 12:38:05 CEST
 #      REVISION:  ---
 #===============================================================================
 
@@ -30,27 +30,39 @@ green='\e[0;32m'
 yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
-# GIT
-echo -e "${green}***** Checking GIT repositories in ${yellow}$rootDir${NC}"
-echo
-find "$rootDir" -type d -name .git | sort | while read line; do
-	workingDir=$(dirname "$line")
-	echo -e "${yellow}$workingDir${NC}"
-	cd "$workingDir"
-	echo -e "${green}$(git pull)${NC}"
-	echo
-done
+if [ "$(command -v git)" == "" ]
+then
+  echo -e "${red}git not installed${NC}"
+else
+  # GIT
+  echo -e "${green}***** Checking GIT repositories in ${yellow}$rootDir${NC}"
+  echo
+  find "$rootDir" -type d -name .git | sort | while read line; do
+    workingDir=$(dirname "$line")
+    echo -e "${yellow}$workingDir${NC}"
+    cd "$workingDir"
+    echo -e "${green}$(git pull)${NC}"
+    echo
+  done
+fi
 
-echo
 
-# SVN
-echo -e "${green}***** Checking SVN repositories in ${yellow}$rootDir${NC}"
-echo
-find "$rootDir" -type d -name .svn | sort | while read line; do
-	workingDir=$(dirname "$line")
-	echo -e "${yellow}$workingDir${NC}"
-	cd "$workingDir"
-	echo -e "${green}$(svn update)${NC}"
-	echo
-done
+if [ "$(command -v svn)" == "" ]
+then
+  echo -e "${red}svn not installed${NC}"
+else
+  # SVN
+  echo -e "${green}***** Checking SVN repositories in ${yellow}$rootDir${NC}"
+  echo
+  find "$rootDir" -type d -name .svn | sort | while read line; do
+    workingDir=$(dirname "$line")
+    echo -e "${yellow}$workingDir${NC}"
+    cd "$workingDir"
+    echo -e "${green}$(svn update)${NC}"
+    echo
+  done
+fi
+
+
+
 

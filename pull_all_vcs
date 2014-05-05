@@ -19,16 +19,21 @@
 
 # set -o nounset                              # Treat unset variables as an error
 
+dir="$HOME"
+if [ "$1" != "" ]
+then
+  dir=$1
+fi
+
 red='\e[0;31m'
 green='\e[0;32m'
 yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
 # GIT
-echo -e "${green}-------------------------${NC}"
-echo -e "${green}Checking GIT repositories${NC}"
-echo -e "${green}-------------------------${NC}"
-find ~ -type d -name .git -print0 | xargs -0 -n 1 dirname | sort | while read line; do 
+echo -e "${green}***** Checking GIT repositories in ${yellow}$dir${NC}"
+echo
+find "$dir" -type d -name .git -print0 | xargs -0 -n 1 dirname | sort | while read line; do 
 	echo -e "${yellow}$line${NC}"
 	cd "$line"
 	echo -e "${green}$(git pull)${NC}"
@@ -38,10 +43,9 @@ done
 echo
 
 # SVN
-echo -e "${green}-------------------------${NC}"
-echo -e "${green}Checking SVN repositories${NC}"
-echo -e "${green}-------------------------${NC}"
-find ~ -type d -name .svn -print0 | xargs -0 -n 1 dirname | sort | while read line; do
+echo -e "${green}***** Checking SVN repositories in ${yellow}$dir${NC}"
+echo
+find "$dir" -type d -name .svn -print0 | xargs -0 -n 1 dirname | sort | while read line; do
 	echo -e "${yellow}$line${NC}"
 	cd "$line"
 	echo -e "${green}$(svn update)${NC}"

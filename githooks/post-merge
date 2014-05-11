@@ -66,13 +66,13 @@ then
   if [ "$group" == "" ]; then group=$(grep '^ *Group *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$summary" == "" ]; then summary=$(grep '^ *Summary *' "$name.spec" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
   
-  #if [ "$requires" == "" ]; then requires=$(grep '^ *Requires *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " " | tr '\n' ',' | sed -e 's/^,*//' -e 's/,*$//'); fi
+  if [ "$requires" == "" ]; then requires=$(grep '^ *Requires *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " " | tr '\n' ',' | sed -e 's/^,*//' -e 's/,*$//'); fi
 fi
 
 if [ -f "setup.py" ]
 then
   # --spec foo -> forget the ugly spec file
-  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" python setup.py install
+  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" --requires "$requires" python setup.py install
 else
   if [ -f configure ]
   then
@@ -81,7 +81,7 @@ else
   make;
   # --spec foo -> forget the ugly spec file
   
-  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group"
+  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" --requires \""$requires"\"
 fi
 
 exit 0

@@ -48,8 +48,6 @@ then
   if [ "$license" == "" ]; then license=$(./setup.py --license); fi
   if [ "$requires" == "" ]; then requires=$(./setup.py --requires); fi
   if [ "$summary" == "" ]; then summary=$(./setup.py --description); echo "$summary" > description-pak; fi
-  
-  
 fi
 
 if [ -f "Makefile" ]
@@ -72,7 +70,7 @@ fi
 if [ -f "setup.py" ]
 then
   # --spec foo -> forget the ugly spec file
-  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" --requires "$requires" python setup.py install
+  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" --requires \""$requires\"" python setup.py install
 else
   if [ -f configure ]
   then

@@ -2,30 +2,29 @@
 #
 
 release=$(($(git rev-list HEAD --count) - 1))
+source=$(git config --get remote.origin.url)
 version=""
-name=""
+name=$(git remote -v | head -n1 | awk '{print $2}' | sed -e 's,.*:\(.*/\)\?,,' -e 's/\.git$//')
 
 if [ -f "debian/changelog" ]
 then
-  name=$(head -1 "debian/changelog" | gawk -F " " '{print $1}')
+#  name=$(head -1 "debian/changelog" | gawk -F " " '{print $1}')
   version=$(head -1 "debian/changelog" | gawk -F " " '{print $2}' |  tr -d "()")
 elif [ -f "setup.py" ]
 then
   maintainer=$(./setup.py --author)
   maintainermail=$(./setup.py --author-email)
-  name=$(./setup.py --name | tr '[:upper:]' '[:lower:]')
+#  name=$(./setup.py --name | tr '[:upper:]' '[:lower:]')
   version=$(./setup.py --version)
   license=$(./setup.py --license)
   requires=$(./setup.py --requires)
-  source=$(./setup.py --url)
 
   summary=$(./setup.py --description)
   echo $summary > description-pak
 elif [ -f "Makefile" ]
 then
-  name=$(grep '^PACKAGE_NAME = ' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
-  version=$(grep '^PACKAGE_VERSION = ' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
-  source=$(grep '^PACKAGE_URL = ' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
+#  name=$(grep '^PACKAGE_NAME *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
+  version=$(grep '^PACKAGE_VERSION *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
 fi
 
 exec < /dev/tty

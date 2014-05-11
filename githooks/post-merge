@@ -1,54 +1,16 @@
 #!/bin/bash
 #
 
-release=$(($(git rev-list HEAD --count) - 1))
-source=$(git config --get remote.origin.url)
-version=""
 name=$(git remote -v | head -n1 | awk '{print $2}' | sed -e 's,.*:\(.*/\)\?,,' -e 's/\.git$//')
-
-if [ -f "debian/changelog" ]
-then
-#  name=$(head -1 "debian/changelog" | gawk -F " " '{print $1}')
-  version=$(head -1 "debian/changelog" | gawk -F " " '{print $2}' |  tr -d "()")
-elif [ -f "setup.py" ]
-then
-  maintainer=$(./setup.py --author)
-  maintainermail=$(./setup.py --author-email)
-#  name=$(./setup.py --name | tr '[:upper:]' '[:lower:]')
-  version=$(./setup.py --version)
-  license=$(./setup.py --license)
-  requires=$(./setup.py --requires)
-
-  summary=$(./setup.py --description)
-  echo $summary > description-pak
-elif [ -f "Makefile" ]
-then
-#  name=$(grep '^PACKAGE_NAME *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
-  version=$(grep '^PACKAGE_VERSION *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
-fi
 
 exec < /dev/tty
 
 while true; do
-  read -n 1 -p "$name $version-$release installieren? [y/n]: " yn
+  read -n 1 -p "$name installieren? [y/n]: " yn
   echo;
   case $yn in
     [Yy]* )
-      if [ -f "setup.py" ]
-      then
-        sudo checkinstall --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --requires "$requires" --pkgsource "$source" python setup.py install
-      else
-        if [ -f autogen.sh ]
-        then
-          ./autogen.sh;
-        fi
-        if [ -f configure ]
-        then
-          ./configure;
-        fi
-        make;
-        sudo checkinstall --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --requires "$requires" --pkgsource "$source";
-      fi
+      
     break;;
     [Nn]* ) exit;;
     * ) echo "Bitte mit yes oder no antworten.";;
@@ -56,9 +18,70 @@ while true; do
 done
 
 
+if [ -f autogen.sh ]
+then
+  ./autogen.sh;
+fi
+
+release=$(($(git rev-list HEAD --count) - 1))
+source=$(git config --get remote.origin.url)
+version=""
+maintainer=""
+license=""
+requires=""
+summary=""
+group=""
 
 
+if [ -f "debian/changelog" ]
+then
+  echo "debian/changelog"
+  if [ "$version" == "" ]; then version=$(head -1 "debian/changelog" | gawk -F " " '{print $2}' |  tr -d "()"); fi
+fi
 
+if [ -f "setup.py" ]
+then
+  echo "setup.py"
+  if [ "$maintainer" == "" ]; then maintainer=$(./setup.py --author); fi
+  if [ "$maintainermail" == "" ]; then maintainermail=$(./setup.py --author-email); fi
+  if [ "$version" == "" ]; then version=$(./setup.py --version); fi
+  if [ "$license" == "" ]; then license=$(./setup.py --license); fi
+  if [ "$requires" == "" ]; then requires=$(./setup.py --requires); fi
+  if [ "$summary" == "" ]; then summary=$(./setup.py --description); echo "$summary" > description-pak; fi
+  
+  
+fi
 
+if [ -f "Makefile" ]
+then
+  echo "Makefile"
+  if [ "$version" == "" ]; then version=$(grep '^ *PACKAGE_VERSION *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " "); fi
+  
+fi
 
+if [ -f "$name.spec" ]
+then
+  echo "*.spec"
+  if [ "$license" == "" ]; then license=$(grep '^ *License *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
+  if [ "$group" == "" ]; then group=$(grep '^ *Group *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
+  if [ "$summary" == "" ]; then summary=$(grep '^ *Summary *' "$name.spec" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
+  
+  #if [ "$requires" == "" ]; then requires=$(grep '^ *Requires *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " " | tr '\n' ',' | sed -e 's/^,*//' -e 's/,*$//'); fi
+fi
 
+if [ -f "setup.py" ]
+then
+  # --spec foo -> forget the ugly spec file
+  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" python setup.py install
+else
+  if [ -f configure ]
+  then
+    ./configure;
+  fi
+  make;
+  # --spec foo -> forget the ugly spec file
+  
+  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group"
+fi
+
+exit 0

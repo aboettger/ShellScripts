@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+
+release=$(($(git rev-list HEAD --count) - 1))
+version=""
+name=""
+
+if [ -f "debian/changelog" ]
+then
+  name=$(head -1 "debian/changelog" | gawk -F " " '{print $1}')
+  version=$(head -1 "debian/changelog" | gawk -F " " '{print $2}' |  tr -d "()")
+elif [ -f "setup.py" ]
+then
+  maintainer=$(./setup.py --author)
+  maintainermail=$(./setup.py --author-email)
+  name=$(./setup.py --name | tr '[:upper:]' '[:lower:]')
+  version=$(./setup.py --version)
+  license=$(./setup.py --license)
+  requires=$(./setup.py --requires)
+  source=$(./setup.py --url)
+
+  summary=$(./setup.py --description)
+  echo $summary > description-pak
+elif [ -f "Makefile" ]
+then
+  name=$(grep '^PACKAGE_NAME = ' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
+  version=$(grep '^PACKAGE_VERSION = ' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
+  source=$(grep '^PACKAGE_URL = ' Makefile | gawk -F "=" '{print $2}' |  tr -d " ")
+fi
+
+exec < /dev/tty
+
+while true; do
+  read -n 1 -p "$name $version-$release installieren? [y/n]: " yn
+  echo;
+  case $yn in
+    [Yy]* )
+      if [ -f "setup.py" ]
+      then
+        sudo checkinstall --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --requires "$requires" --pkgsource "$source" python setup.py install
+      else
+        if [ -f autogen.sh ]
+        then
+          ./autogen.sh;
+        fi
+        if [ -f configure ]
+        then
+          ./configure;
+        fi
+        make;
+        sudo checkinstall --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --requires "$requires" --pkgsource "$source";
+      fi
+    break;;
+    [Nn]* ) exit;;
+    * ) echo "Bitte mit yes oder no antworten.";;
+  esac
+done
+
+
+
+
+
+
+
+

@@ -1,6 +1,11 @@
 #!/bin/bash
 #
 
+red="\e[0;31m"
+green="\e[0;32m"
+yellow="\e[0;33m"
+NC="\e[0m" # No Color
+
 name=$(git remote -v | head -n1 | awk '{print $2}' | sed -e 's,.*:\(.*/\)\?,,' -e 's/\.git$//')
 
 exec < /dev/tty
@@ -17,9 +22,15 @@ while true; do
   esac
 done
 
+if [ -f description-pak ]
+then
+  echo -e "Lösche ${yellow}description-pak${NC}"
+  sudo rm description-pak
+fi
 
 if [ -f autogen.sh ]
 then
+  echo -e "Starte ${green}autogen.sh${NC}"
   ./autogen.sh;
 fi
 
@@ -36,13 +47,13 @@ architecture=""
 
 if [ -f "debian/changelog" ]
 then
-  echo "debian/changelog"
+  echo -e "Verwende: ${green}debian/changelog${NC}"
   if [ "$version" == "" ]; then version=$(head -1 "debian/changelog" | gawk -F " " '{print $2}' |  tr -d "()"); fi
 fi
 
 if [ -f "debian/control" ]
 then
-  echo "debian/control"
+  echo -e "Verwende: ${green}debian/control${NC}"
   if [ "$architecture" == "" ]; then architecture=$(grep '^ *Architecture *' "debian/control" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$requires" == "" ]; then requires=$(grep '^ *Depends *' "debian/control" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$maintainer" == "" ]; then maintainer=$(grep '^ *Maintainer *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); fi
@@ -52,7 +63,7 @@ fi
 
 if [ -f "setup.py" ]
 then
-  echo "setup.py"
+  echo -e "Verwende: ${green}setup.py${NC}"
   if [ "$maintainer" == "" ]; then maintainer=$(./setup.py --author); fi
   if [ "$maintainermail" == "" ]; then maintainermail=$(./setup.py --author-email); fi
   if [ "$version" == "" ]; then version=$(./setup.py --version); fi
@@ -63,14 +74,14 @@ fi
 
 if [ -f "Makefile" ]
 then
-  echo "Makefile"
+  echo -e "Verwende: ${green}Makefile${NC}"
   if [ "$version" == "" ]; then version=$(grep '^ *PACKAGE_VERSION *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " "); fi
   
 fi
 
 if [ -f "$name.spec" ]
 then
-  echo "*.spec"
+  echo -e "Verwende: ${green}$name.spec${NC}"
   if [ "$license" == "" ]; then license=$(grep '^ *License *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$group" == "" ]; then group=$(grep '^ *Group *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$summary" == "" ]; then summary=$(grep '^ *Summary *' "$name.spec" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
@@ -80,6 +91,7 @@ fi
 
 if [ -f "setup.py" ]
 then
+  echo -e "Installiere mit ${green}checkinstall ... python setup.py install${NC}"
   # --spec foo -> forget the ugly spec file
   sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$source"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" python setup.py install
 else
@@ -93,6 +105,7 @@ else
   fi
   # --spec foo -> forget the ugly spec file
   
+  echo -e "Installiere mit ${green}checkinstall ...${NC}"
   sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$source"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\"
 fi
 

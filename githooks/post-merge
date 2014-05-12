@@ -31,12 +31,22 @@ license=""
 requires=""
 summary=""
 group=""
+architecture=""
 
 
 if [ -f "debian/changelog" ]
 then
   echo "debian/changelog"
   if [ "$version" == "" ]; then version=$(head -1 "debian/changelog" | gawk -F " " '{print $2}' |  tr -d "()"); fi
+fi
+
+if [ -f "debian/control" ]
+then
+  echo "debian/control"
+  if [ "$architecture" == "" ]; then architecture=$(grep '^ *Architecture *' "debian/control" | gawk -F ":" '{print $2}' |  tr -d " "); fi
+  if [ "$requires" == "" ]; then requires=$(grep '^ *Depends *' "debian/control" | gawk -F ":" '{print $2}' |  tr -d " "); fi
+  if [ "$maintainer" == "" ]; then maintainer=$(grep '^ *Maintainer *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); fi
+  if [ "$summary" == "" ]; then summary=$(grep '^ *Description *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
 fi
 
 if [ -f "setup.py" ]
@@ -70,16 +80,20 @@ fi
 if [ -f "setup.py" ]
 then
   # --spec foo -> forget the ugly spec file
-  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" --requires \""$requires\"" python setup.py install
+  sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$source"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" python setup.py install
 else
   if [ -f configure ]
   then
     ./configure;
   fi
-  make;
+  if [ -f "Makefile" ]
+  then
+    make
+  fi
   # --spec foo -> forget the ugly spec file
   
-  sudo checkinstall --spec foo --maintainer "$maintainer \($maintainermail\)" --pkglicense "$license" --pkgname "$name" --pkgrelease "$release" --pkgversion "$version" --pkgsource "$source" --pkggroup "$group" --requires \""$requires"\"
+  sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$source"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\"
 fi
 
 exit 0
+

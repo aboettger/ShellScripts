@@ -46,6 +46,7 @@ then
   if [ "$architecture" == "" ]; then architecture=$(grep '^ *Architecture *' "debian/control" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$requires" == "" ]; then requires=$(grep '^ *Depends *' "debian/control" | gawk -F ":" '{print $2}' |  tr -d " "); fi
   if [ "$maintainer" == "" ]; then maintainer=$(grep '^ *Maintainer *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); fi
+  if [ "$group" == "" ]; then group=$(grep '^ *Section *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); fi
   if [ "$summary" == "" ]; then summary=$(grep '^ *Description *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
 fi
 

@@ -1,12 +1,24 @@
 #!/bin/bash
 #
+# TODO curl "https://api.github.com/search/repositories?q=+repo:nicolargo/glances" | jq '.items[].description'
 
 red="\e[0;31m"
 green="\e[0;32m"
 yellow="\e[0;33m"
 NC="\e[0m" # No Color
 
-name=$(git remote -v | head -n1 | awk '{print $2}' | sed -e 's,.*:\(.*/\)\?,,' -e 's/\.git$//')
+# GIT
+source=$(git config --get remote.origin.url)
+name=$(echo $source | gawk -F "/" '{print $5}' | sed -e 's/\.git$//')
+gitowner=$(echo $source | gawk -F "/" '{print $4}')
+release=$(($(git rev-list HEAD --count) - 1))
+
+domain=$(echo $source | gawk -F "/" '{print $3}')
+if [ "$domain" == "github.com" ]
+then
+  echo -e "${green}Gehostet auf GitHub, API kann verwendet werden. (Wird sie aber noch nicht ;c))${NC}"
+  description=$(curl -s "https://api.github.com/search/repositories?q=+repo:$gitowner/$name" | jq '.items[].description')
+fi
 
 exec < /dev/tty
 
@@ -46,8 +58,7 @@ then
   make
 fi
 
-release=$(($(git rev-list HEAD --count) - 1))
-source=$(git config --get remote.origin.url)
+
 version=""
 maintainer=""
 license=""
@@ -142,6 +153,8 @@ else
 fi
 
 exit 0
+
+
 
 
 

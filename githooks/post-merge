@@ -34,6 +34,18 @@ then
   ./autogen.sh;
 fi
 
+if [ -f configure ]
+then
+  echo -e "Starte ${green}configure${NC}"
+  ./configure;
+fi
+
+if [ -f "Makefile" ]
+then
+  echo -e "Starte ${green}make${NC}"
+  make
+fi
+
 release=$(($(git rev-list HEAD --count) - 1))
 source=$(git config --get remote.origin.url)
 version=""
@@ -61,33 +73,60 @@ then
   if [ "$summary" == "" ]; then summary=$(grep '^ *Description *' "debian/control" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
 fi
 
-if [ -f "setup.py" ]
-then
-  echo -e "Verwende: ${green}setup.py${NC}"
-  if [ "$maintainer" == "" ]; then maintainer=$(./setup.py --author); fi
-  if [ "$maintainermail" == "" ]; then maintainermail=$(./setup.py --author-email); fi
-  if [ "$version" == "" ]; then version=$(./setup.py --version); fi
-  if [ "$license" == "" ]; then license=$(./setup.py --license); fi
-  if [ "$requires" == "" ]; then requires=$(./setup.py --requires); fi
-  if [ "$summary" == "" ]; then summary=$(./setup.py --description); echo "$summary" > description-pak; fi
-fi
-
 if [ -f "Makefile" ]
 then
   echo -e "Verwende: ${green}Makefile${NC}"
   if [ "$version" == "" ]; then version=$(grep '^ *PACKAGE_VERSION *= *' Makefile | gawk -F "=" '{print $2}' |  tr -d " "); fi
-  
+  if [ "$version" != "" ]; then echo -e "\tVersion: ${green}$version${NC}"; fi
 fi
 
 if [ -f "$name.spec" ]
 then
   echo -e "Verwende: ${green}$name.spec${NC}"
   if [ "$license" == "" ]; then license=$(grep '^ *License *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
+  if [ "$license" != "" ]; then echo -e "\tLicense: ${green}$license${NC}"; fi
+  
   if [ "$group" == "" ]; then group=$(grep '^ *Group *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " "); fi
+  if [ "$group" != "" ]; then echo -e "\tGroup: ${green}$group${NC}"; fi
+  
   if [ "$summary" == "" ]; then summary=$(grep '^ *Summary *' "$name.spec" | gawk -F ":" '{print $2}' | sed -e 's/^ *//' -e 's/ *$//'); echo "$summary" > description-pak; fi
+  if [ "$summary" != "" ]; then echo -e "\tSummary: ${green}$summary${NC}"; fi
   
   if [ "$requires" == "" ]; then requires=$(grep '^ *Requires *' "$name.spec" | gawk -F ":" '{print $2}' |  tr -d " " | tr '\n' ',' | sed -e 's/^,*//' -e 's/,*$//'); fi
+  if [ "$requires" != "" ]; then echo -e "\tRequires: ${green}$requires${NC}"; fi
 fi
+
+if [ -f "setup.py" ]
+then
+  if [ ! -x "setup.py" ]
+  then
+    echo -e "${red}setup.py ist nicht ausführbar -> Abbruch.${NC}"
+    exit
+  else
+    echo -e "Verwende: ${green}setup.py${NC}"
+    if [ "$maintainer" == "" ]; then maintainer=$(./setup.py --author); fi
+    if [ "$maintainer" != "" ]; then echo -e "\tMaintainer: ${green}$maintainer${NC}"; fi
+    
+    if [ "$maintainermail" == "" ]; then maintainermail=$(./setup.py --author-email); fi
+    if [ "$maintainermail" != "" ]; then echo -e "\tMaintainer eMail: ${green}$maintainermail${NC}"; fi
+    
+    if [ "$version" == "" ]; then version=$(./setup.py --version); fi
+    if [ "$version" != "" ]; then echo -e "\tVersion: ${green}$version${NC}"; fi
+    
+    if [ "$license" == "" ]; then license=$(./setup.py --license); fi
+    if [ "$license" != "" ]; then echo -e "\tLicense: ${green}$license${NC}"; fi
+    
+    if [ "$requires" == "" ]; then requires=$(./setup.py --requires); fi
+    if [ "$requires" != "" ]; then echo -e "\tRequires: ${green}$requires${NC}"; fi
+    
+    if [ "$summary" == "" ]; then summary=$(./setup.py --description); echo "$summary" > description-pak; fi
+    if [ "$summary" != "" ]; then echo -e "\tSummary: ${green}$summary${NC}"; fi
+  fi
+fi
+
+
+
+
 
 if [ -f "setup.py" ]
 then
@@ -95,14 +134,7 @@ then
   # --spec foo -> forget the ugly spec file
   sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$source"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" python setup.py install
 else
-  if [ -f configure ]
-  then
-    ./configure;
-  fi
-  if [ -f "Makefile" ]
-  then
-    make
-  fi
+  
   # --spec foo -> forget the ugly spec file
   
   echo -e "Installiere mit ${green}checkinstall ...${NC}"
@@ -110,4 +142,14 @@ else
 fi
 
 exit 0
+
+
+
+
+
+
+
+
+
+
 

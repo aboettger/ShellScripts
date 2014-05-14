@@ -99,11 +99,6 @@ then
   if [ "$version" != "" ]; then echo -e "\tVersion: ${green}$version${NC}"; fi
 fi
 
-if [ "$isGitHub" == "true" ]
-then
-  if [ "$summary" == "" ]; then summary=$(echo "$responseGitHub" | jq '.items[].description' | sed -e 's/^"*//' -e 's/"*$//'); echo "$summary" > description-pak; fi
-fi
-
 if [ -f "$name.spec" ]
 then
   echo -e "Verwende: ${green}$name.spec${NC}"
@@ -146,6 +141,13 @@ then
     if [ "$summary" == "" ]; then summary=$(./setup.py --description); echo "$summary" > description-pak; fi
     if [ "$summary" != "" ]; then echo -e "\tSummary: ${green}$summary${NC}"; fi
   fi
+fi
+
+if [ "$isGitHub" == "true" ]
+then
+  echo -e "Verwende: ${green}GitHub-API${NC}"
+  if [ "$summary" == "" ]; then summary=$(echo "$responseGitHub" | jq '.items[].description' | sed -e 's/^"*//' -e 's/"*$//'); echo "$summary" > description-pak; fi
+  if [ "$summary" != "" ]; then echo -e "\tSummary: ${green}$summary${NC}"; fi
 fi
 
 if [ "$sourceHtmlUrl" == "" ]

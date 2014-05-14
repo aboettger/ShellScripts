@@ -157,9 +157,11 @@ fi
 
 if [ -f "setup.py" ]
 then
-  echo -e "Installiere mit ${green}checkinstall ... python setup.py install${NC}"
+#  echo -e "Installiere mit ${green}checkinstall ... python setup.py install${NC}"
+  echo -e "Installiere mit ${green}checkinstall ... pip install${NC}"
+
   # --spec foo -> forget the ugly spec file
-  sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$sourceHtmlUrl"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" python setup.py install
+  sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$sourceHtmlUrl"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" pip install
 else
   
   # --spec foo -> forget the ugly spec file

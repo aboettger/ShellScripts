@@ -43,6 +43,8 @@ then
   sudo rm description-pak
 fi
 
+
+
 if [ -f autogen.sh ]
 then
   echo -e "Starte ${green}autogen.sh${NC}"
@@ -157,11 +159,34 @@ fi
 
 if [ -f "setup.py" ]
 then
-#  echo -e "Installiere mit ${green}checkinstall ... python setup.py install${NC}"
-  echo -e "Installiere mit ${green}checkinstall ... pip install${NC}"
-
+  
   # --spec foo -> forget the ugly spec file
-  sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$sourceHtmlUrl"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" pip install
+  
+  exec < /dev/tty
+  while true; do
+    read -n 1 -p "Installationsmethode für \"$name\" wählen (1 - python setup.py install, 2 - pip install): " yn
+    echo;
+    case $yn in
+      [1]* ) echo -e "Installiere mit ${green}checkinstall ... python setup.py install${NC}"
+        sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$sourceHtmlUrl"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" python setup.py install
+      break;;
+      [2]* ) echo -e "Installiere mit ${green}checkinstall ... pip install${NC}"
+        if [ -d "/tmp/pip_build_$USER/" ]
+        then
+          echo -e "Lösche ${yellow}/tmp/pip_build_$USER/${NC}"
+          sudo rm -rf "/tmp/pip_build_$USER/"
+        fi
+        
+        if [ -d "/tmp/pip_build_root/" ]
+        then
+          echo -e "Lösche ${yellow}/tmp/pip_build_root/${NC}"
+          sudo rm -rf "/tmp/pip_build_root/"
+        fi
+        sudo checkinstall --spec foo --maintainer \""$maintainer ($maintainermail)"\" --pkglicense \""$license"\" --pkgname \""$name"\" --pkgrelease \""$release"\" --pkgversion \""$version"\" --pkgsource \""$sourceHtmlUrl"\" --pkggroup \""$group"\" --requires \""$requires"\" --pkgarch \""$architecture"\" pip install
+      break;;
+      * ) echo "Bitte mit 1 oder 2 antworten.";;
+    esac
+  done
 else
   
   # --spec foo -> forget the ugly spec file
@@ -171,16 +196,3 @@ else
 fi
 
 exit 0
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -34,7 +34,7 @@ if [ "$(command -v git)" == "" ]
 then
   echo -e "${red}git not installed${NC}"
 else
-  # GIT
+  # GIT source code management system
   echo -e "${green}***** Checking GIT repositories in ${yellow}$rootDir${NC}"
   echo
   find "$rootDir" -type d -name .git | sort | while read line; do
@@ -51,7 +51,7 @@ if [ "$(command -v svn)" == "" ]
 then
   echo -e "${red}svn not installed${NC}"
 else
-  # SVN
+  # Subversion source code management system
   echo -e "${green}***** Checking SVN repositories in ${yellow}$rootDir${NC}"
   echo
   find "$rootDir" -type d -name .svn | sort | while read line; do
@@ -63,6 +63,34 @@ else
   done
 fi
 
+if [ "$(command -v hg)" == "" ]
+then
+  echo -e "${red}hg not installed${NC}"
+else
+  # Mercurial source code management system
+  echo -e "${green}***** Checking HG repositories in ${yellow}$rootDir${NC}"
+  echo
+  find "$rootDir" -type d -name .svn | sort | while read line; do
+    workingDir=$(dirname "$line")
+    echo -e "${yellow}$workingDir${NC}"
+    cd "$workingDir"
+    echo -e "${green}$(hg pull)${NC}"
+    echo
+  done
+fi
 
-
-
+if [ "$(command -v bzr)" == "" ]
+then
+  echo -e "${red}bzr not installed${NC}"
+else
+  # BZR source code management system
+  echo -e "${green}***** Checking BZR repositories in ${yellow}$rootDir${NC}"
+  echo
+  find "$rootDir" -type d -name .bzr | sort | while read line; do
+    workingDir=$(dirname "$line")
+    echo -e "${yellow}$workingDir${NC}"
+    cd "$workingDir"
+    echo -e "${green}$(bzr pull)${NC}"
+    echo
+  done
+fi

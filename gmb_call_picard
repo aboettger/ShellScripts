@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# I use this script together with the programs "gmusicbrowser" and "picard".
+# With each song change this script is called and decided whether the program
+# "picard" should be started or not.
+#
+
+dir=$(dirname "$1")
+fileNameTodayPlayed="/tmp/gmb_call_picard_history"
+matchedValue=""
+
+if [ ! -f "$fileNameTodayPlayed" ]
+then
+  echo "File "$fileNameTodayPlayed" doesn't exists, I will create the file."
+  touch "$fileNameTodayPlayed"
+else
+  matchedValue=$(grep "$(dirname "$1")" "$fileNameTodayPlayed")
+fi
+
+# Don't call picard, if the album '$dir' is already in the list of recently played albums.
+if [ "$matchedValue" != "" ]
+then
+  echo "---- Don't call picard, the album '$dir' is already in the list of recently played albums: '$fileNameTodayPlayed'"
+else
+  echo "++++ Call picard, the album '$dir' is not in the list of recently played albums: '$fileNameTodayPlayed'"
+  echo "$dir" >> "$fileNameTodayPlayed"
+  picard "$dir"
+fi

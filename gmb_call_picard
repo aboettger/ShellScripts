@@ -6,6 +6,18 @@
 #
 
 dir=$(dirname "$1")
+
+if [ "$dir" == "" ]
+then
+  echo "The supplied folder name is empty."
+  exit 1
+fi
+
+if [ "$(ls -A "$dir")" == "" ]; then
+  echo "The supplied folder '$dir' is empty."
+  exit 1
+fi
+
 fileNameTodayPlayed="/tmp/gmb_call_picard_history"
 matchedValue=""
 
@@ -14,7 +26,9 @@ then
   echo "File "$fileNameTodayPlayed" doesn't exists, I will create the file."
   touch "$fileNameTodayPlayed"
 else
-  matchedValue=$(grep "$(dirname "$1")" "$fileNameTodayPlayed")
+  dirEscaped=${dir//\[/\\[}
+  dirEscaped=${dirEscaped//\]/\\]}
+  matchedValue=$(grep "$dirEscaped" "$fileNameTodayPlayed")
 fi
 
 # Don't call picard, if the album '$dir' is already in the list of recently played albums.
@@ -26,3 +40,5 @@ else
   echo "$dir" >> "$fileNameTodayPlayed"
   picard "$dir"
 fi
+
+exit 0

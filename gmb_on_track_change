@@ -55,7 +55,7 @@ else
 fi
 
 compareDate=$(date -d "-$deleteAfterHours hours" +%s)
-cmd "$2" | while read line
+cat "$2" | while read line
 do
     lineDate=$(gawk -F ":" '{print $1}' <<< "$line")
     # Write a new file with unexpired entries

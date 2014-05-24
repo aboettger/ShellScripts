@@ -44,8 +44,8 @@ else
   pathNameHistory="$2"
 fi
 
-fileNameHistory=$(basename "$2")
-dirNameHistory=$(dirname "$2")
+fileNameHistory=$(basename "$pathNameHistory")
+dirNameHistory=$(dirname "$pathNameHistory")
 
 if [ "$3" == "" ]
 then

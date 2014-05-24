@@ -1,43 +1,94 @@
 #!/bin/bash
+#===============================================================================
+#
+#          FILE: gmb_on_track_change
+#
+#         USAGE: ./gmb_on_track_change  album_folder  [history_file]  [expired_hours]
+#                   album_folder  ... Start folder for pcard
+#                   history_file  ... 
+#                   expired_hours ... Hours, after which the entry is expired
 #
 # I use this script together with the programs "gmusicbrowser" and "picard".
 # With each song change this script is called and decided whether the program
 # "picard" should be started or not.
 #
+#       OPTIONS: ---
+#  REQUIREMENTS: picard
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Andreas Böttger (aboettger), andreas.boettger@gmx.de
+#  ORGANIZATION:
+#       CREATED: Fr 25 Apr 2014 17:17:43 CEST
+#      REVISION:  ---
+#===============================================================================
+#
 
-dir=$(dirname "$1")
-
-if [ "$dir" == "" ]
+if [ "$1" == "" ]
 then
   echo "The supplied folder name is empty."
   exit 1
 fi
+
+dir=$(dirname "$1")
 
 if [ "$(ls -A "$dir")" == "" ]; then
   echo "The supplied folder '$dir' is empty."
   exit 1
 fi
 
-fileNameTodayPlayed="/tmp/gmb_call_picard_history"
+pathNameHistory=""
+if [ "$2" == "" ]
+then
+  pathNameHistory="~/gmb_call_picard_history"
+else
+  pathNameHistory="$2"
+fi
+
+fileNameHistory=$(basename "$2")
+dirNameHistory=$(dirname "$2")
+
+if [ "$3" == "" ]
+then
+  deleteAfterHours="24"
+else
+  deleteAfterHours="$3"
+fi
+
+compareDate=$(date -d "-$deleteAfterHours hours" +%s)
+cmd "$2" | while read line
+do
+    lineDate=$(gawk -F ":" '{print $1}' <<< "$line")
+    # Write a new file with unexpired entries
+    if [ "$lineDate" -gt "$compareDate " ]
+    then
+      echo "$line" > "$dirNameHistory/$fileNameHistory.bak"
+    fi
+done
+
+if [ -f "$dirNameHistory/$fileNameHistory.bak" ]
+then
+  mv "$dirNameHistory/$fileNameHistory.bak" "$2"
+fi
+
 matchedValue=""
 
-if [ ! -f "$fileNameTodayPlayed" ]
+if [ ! -f "$pathNameHistory" ]
 then
-  echo "File "$fileNameTodayPlayed" doesn't exists, I will create the file."
-  touch "$fileNameTodayPlayed"
+  echo "File \"$pathNameHistory\" doesn't exists, I will create the file."
+  touch "$pathNameHistory"
 else
   dirEscaped=${dir//\[/\\[}
   dirEscaped=${dirEscaped//\]/\\]}
-  matchedValue=$(grep "$dirEscaped" "$fileNameTodayPlayed")
+  matchedValue=$(grep "$dirEscaped" "$pathNameHistory")
 fi
 
 # Don't call picard, if the album '$dir' is already in the list of recently played albums.
 if [ "$matchedValue" != "" ]
 then
-  echo "---- Don't call picard, the album '$dir' is already in the list of recently played albums: '$fileNameTodayPlayed'"
+  echo "---- Don't call picard, the album '$dir' is already in the list of recently played albums: '$pathNameHistory'"
 else
-  echo "++++ Call picard, the album '$dir' is not in the list of recently played albums: '$fileNameTodayPlayed'"
-  echo "$dir" >> "$fileNameTodayPlayed"
+  echo "++++ Call picard, the album '$dir' is not in the list of recently played albums: '$pathNameHistory'"
+  echo "$(date +%s):$dir" >> "$pathNameHistory"
   picard "$dir"
 fi
 

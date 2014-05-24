@@ -55,19 +55,19 @@ else
 fi
 
 compareDate=$(date -d "-$deleteAfterHours hours" +%s)
-cat "$2" | while read line
+cat $pathNameHistory | while read line
 do
     lineDate=$(gawk -F ":" '{print $1}' <<< "$line")
     # Write a new file with unexpired entries
     if [ "$lineDate" -gt "$compareDate " ]
     then
-      echo "$line" > "$dirNameHistory/$fileNameHistory.bak"
+      echo "$line" >> "$dirNameHistory/$fileNameHistory.bak"
     fi
 done
 
 if [ -f "$dirNameHistory/$fileNameHistory.bak" ]
 then
-  mv "$dirNameHistory/$fileNameHistory.bak" "$2"
+  mv "$dirNameHistory/$fileNameHistory.bak" "$pathNameHistory"
 fi
 
 matchedValue=""
@@ -79,6 +79,7 @@ then
 else
   dirEscaped=${dir//\[/\\[}
   dirEscaped=${dirEscaped//\]/\\]}
+  dirEscaped=${dirEscaped//\?/\\?}
   matchedValue=$(grep "$dirEscaped" "$pathNameHistory")
 fi
 

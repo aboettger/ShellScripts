@@ -30,6 +30,8 @@ green='\e[0;32m'
 yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
+#jq ".GIT" <<< "{\"GIT\":[[\"name\",\"Git\"],[\"command\",\"git\"],[\"configDir\",\".git\"],[\"updateCommand\",\"pull\"]]}"
+
 if [ "$(command -v git)" == "" ]
 then
   echo -e "${red}git not installed${NC}"
@@ -39,7 +41,7 @@ else
   echo
   find "$rootDir" -type d -name .git | sort | while read line; do
     workingDir=$(dirname "$line")
-    echo -e "${yellow}$workingDir${NC}"
+    echo -e "${green}GIT: ${NC}${yellow}$workingDir${NC}"
     cd "$workingDir"
     echo -e "${green}$(git pull)${NC}"
     echo
@@ -56,7 +58,7 @@ else
   echo
   find "$rootDir" -type d -name .svn | sort | while read line; do
     workingDir=$(dirname "$line")
-    echo -e "${yellow}$workingDir${NC}"
+    echo -e "${green}SVN: ${NC}${yellow}$workingDir${NC}"
     cd "$workingDir"
     echo -e "${green}$(svn update)${NC}"
     echo
@@ -72,7 +74,7 @@ else
   echo
   find "$rootDir" -type d -name .svn | sort | while read line; do
     workingDir=$(dirname "$line")
-    echo -e "${yellow}$workingDir${NC}"
+    echo -e "${green}HG: ${NC}${yellow}$workingDir${NC}"
     cd "$workingDir"
     echo -e "${green}$(hg pull)${NC}"
     echo
@@ -88,7 +90,7 @@ else
   echo
   find "$rootDir" -type d -name .bzr | sort | while read line; do
     workingDir=$(dirname "$line")
-    echo -e "${yellow}$workingDir${NC}"
+    echo -e "${green}BZR: ${NC}${yellow}$workingDir${NC}"
     cd "$workingDir"
     echo -e "${green}$(bzr pull)${NC}"
     echo

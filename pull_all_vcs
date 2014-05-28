@@ -36,6 +36,8 @@ green='\e[0;32m'
 yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
+# JSON
+# replace \" with " and paste it here: http://www.jsoneditoronline.org/
 rc="{\"GIT\":{\"name\":\"GIT\",\"command\":\"git\",\"pullSubCommand\":\"pull\",\"dotFolder\":\".git\"},\"SVN\":{\"name\":\"SVN\",\"command\":\"svn\",\"pullSubCommand\":\"update\",\"dotFolder\":\".svn\"},\"HG\":{\"name\":\"Mercurial\",\"command\":\"hg\",\"pullSubCommand\":\"pull\",\"dotFolder\":\".hg\"},\"BZR\":{\"name\":\"Bazaar\",\"command\":\"bzr\",\"pullSubCommand\":\"pull\",\"dotFolder\":\".bzr\"}}"
 
 for vcr in $(echo "$rc" | jshon -k)

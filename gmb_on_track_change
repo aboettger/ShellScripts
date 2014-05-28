@@ -5,7 +5,7 @@
 #
 #         USAGE: ./gmb_on_track_change  album_folder  [history_file]  [expired_hours]
 #                   album_folder  ... Start folder for pcard
-#                   history_file  ... 
+#                   history_file  ...
 #                   expired_hours ... Hours, after which the entry is expired
 #
 # I use this script together with the programs "gmusicbrowser" and "picard".
@@ -22,6 +22,14 @@
 #      REVISION:  ---
 #===============================================================================
 #
+
+function okfail () {
+  if [ $? -gt 0 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
 
 if [ "$1" == "" ]
 then
@@ -54,16 +62,26 @@ else
   deleteAfterHours="$3"
 fi
 
-compareDate=$(date -d "-$deleteAfterHours hours" +%s)
-cat $pathNameHistory | while read line
+lineFound="1"
+while [ "$lineFound" == "1" ]
 do
+  lineFound="0"
+  compareDate=$(date -d "-$deleteAfterHours hours" +%s)
+  while read line
+  do
     lineDate=$(gawk -F ":" '{print $1}' <<< "$line")
-    # Write a new file with unexpired entries
-    if [ "$lineDate" -gt "$compareDate " ]
+    lineNumber=$(awk "/$lineDate/{print NR}" "$pathNameHistory")
+    if [ "$lineDate" -lt "$compareDate" ]
     then
-      echo "$line" >> "$dirNameHistory/$fileNameHistory.bak"
+      printf '%s\n' "$lineNumber",d w | ed -s "$pathNameHistory"
+      okfail; [ $? -gt 0 ] && exit 1
+      echo "***** Line $lineNumber removed from $pathNameHistory (expiration date was: $lineDate)"
+      lineFound="1"
+      break
     fi
+  done  < "$pathNameHistory"
 done
+
 
 if [ -f "$dirNameHistory/$fileNameHistory.bak" ]
 then
@@ -88,11 +106,20 @@ fi
 # Don't call picard, if the album '$dir' is already in the list of recently played albums.
 if [ "$matchedValue" != "" ]
 then
-  echo "---- Don't call picard, the album '$dir' is already in the list of recently played albums: '$pathNameHistory'"
+  echo "----- Don't call picard, the album '$dir' is already in the list of recently played albums: '$pathNameHistory'"
 else
-  echo "++++ Call picard, the album '$dir' is not in the list of recently played albums: '$pathNameHistory'"
+  echo "+++++ Call picard, the album '$dir' is not in the list of recently played albums: '$pathNameHistory'"
   echo "$(date +%s):$dir" >> "$pathNameHistory"
-  picard "$dir"
+  picard "$dir" &
+  pid=$!
+
+  picardWindowId=""
+  while [ "$picardWindowId" == "" ]
+  do
+    picardWindowId=$(wmctrl -lp | grep "$pid" | awk '{print $1}')
+  done
+  xdotool windowminimize "$picardWindowId"
 fi
 
 exit 0
+

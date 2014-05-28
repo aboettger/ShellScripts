@@ -19,6 +19,12 @@
 
 # set -o nounset                              # Treat unset variables as an error
 
+if [ "$(command -v jshon)" == "" ]
+then
+  echo "jshon not installed. Aborting."
+  exit 1
+fi
+
 rootDir="$HOME"
 if [ "$1" != "" ]
 then
@@ -30,69 +36,29 @@ green='\e[0;32m'
 yellow='\e[0;33m'
 NC='\e[0m' # No Color
 
-#jq ".GIT" <<< "{\"GIT\":[[\"name\",\"Git\"],[\"command\",\"git\"],[\"configDir\",\".git\"],[\"updateCommand\",\"pull\"]]}"
+rc="{\"GIT\":{\"name\":\"GIT\",\"command\":\"git\",\"pullSubCommand\":\"pull\",\"dotFolder\":\".git\"},\"SVN\":{\"name\":\"SVN\",\"command\":\"svn\",\"pullSubCommand\":\"update\",\"dotFolder\":\".svn\"},\"HG\":{\"name\":\"Mercurial\",\"command\":\"hg\",\"pullSubCommand\":\"pull\",\"dotFolder\":\".hg\"},\"BZR\":{\"name\":\"Bazaar\",\"command\":\"bzr\",\"pullSubCommand\":\"pull\",\"dotFolder\":\".bzr\"}}"
 
-if [ "$(command -v git)" == "" ]
-then
-  echo -e "${red}git not installed${NC}"
-else
-  # GIT source code management system
-  echo -e "${green}***** Checking GIT repositories in ${yellow}$rootDir${NC}"
-  echo
-  find "$rootDir" -type d -name .git | sort | while read line; do
-    workingDir=$(dirname "$line")
-    echo -e "${green}GIT: ${NC}${yellow}$workingDir${NC}"
-    cd "$workingDir"
-    echo -e "${green}$(git pull)${NC}"
+for vcr in $(echo "$rc" | jshon -k)
+do
+  command=$(echo "$rc" | jshon -e "$vcr" -e "command" | tr -d "\"")
+  name=$(echo "$rc" | jshon -e "$vcr" -e "name" | tr -d "\"")
+  dotFolder=$(echo "$rc" | jshon -e "$vcr" -e "dotFolder" | tr -d "\"")
+  pullSubCommand=$(echo "$rc" | jshon -e "$vcr" -e "pullSubCommand" | tr -d "\"")
+  if [ "$(command -v "$command")" == "" ]
+  then
+    echo -e "${red}$command not installed${NC}"
+  else
+    echo -e "${green}***** Checking $name repositories in ${yellow}$rootDir${NC}"
     echo
-  done
-fi
+    find "$rootDir" -type d -name "$dotFolder" | sort | while read line; do
+      workingDir=$(dirname "$line")
+      echo -e "${green}$name: ${NC}${yellow}$workingDir${NC}"
+      cd "$workingDir"
+      echo -e "${green}$("$command" "$pullSubCommand")${NC}"
+      echo
+    done
+  fi
+done
 
+exit 0
 
-if [ "$(command -v svn)" == "" ]
-then
-  echo -e "${red}svn not installed${NC}"
-else
-  # Subversion source code management system
-  echo -e "${green}***** Checking SVN repositories in ${yellow}$rootDir${NC}"
-  echo
-  find "$rootDir" -type d -name .svn | sort | while read line; do
-    workingDir=$(dirname "$line")
-    echo -e "${green}SVN: ${NC}${yellow}$workingDir${NC}"
-    cd "$workingDir"
-    echo -e "${green}$(svn update)${NC}"
-    echo
-  done
-fi
-
-if [ "$(command -v hg)" == "" ]
-then
-  echo -e "${red}hg not installed${NC}"
-else
-  # Mercurial source code management system
-  echo -e "${green}***** Checking HG repositories in ${yellow}$rootDir${NC}"
-  echo
-  find "$rootDir" -type d -name .svn | sort | while read line; do
-    workingDir=$(dirname "$line")
-    echo -e "${green}HG: ${NC}${yellow}$workingDir${NC}"
-    cd "$workingDir"
-    echo -e "${green}$(hg pull)${NC}"
-    echo
-  done
-fi
-
-if [ "$(command -v bzr)" == "" ]
-then
-  echo -e "${red}bzr not installed${NC}"
-else
-  # BZR source code management system
-  echo -e "${green}***** Checking BZR repositories in ${yellow}$rootDir${NC}"
-  echo
-  find "$rootDir" -type d -name .bzr | sort | while read line; do
-    workingDir=$(dirname "$line")
-    echo -e "${green}BZR: ${NC}${yellow}$workingDir${NC}"
-    cd "$workingDir"
-    echo -e "${green}$(bzr pull)${NC}"
-    echo
-  done
-fi

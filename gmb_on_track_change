@@ -82,12 +82,6 @@ do
   done  < "$pathNameHistory"
 done
 
-
-if [ -f "$dirNameHistory/$fileNameHistory.bak" ]
-then
-  mv "$dirNameHistory/$fileNameHistory.bak" "$pathNameHistory"
-fi
-
 matchedValue=""
 
 if [ ! -f "$pathNameHistory" ]

@@ -106,6 +106,7 @@ else
   echo "$(date +%s):$dir" >> "$pathNameHistory"
   picard "$dir" &
   pid=$!
+  okfail; [ $? -gt 0 ] && exit 1
 
   picardWindowId=""
   while [ "$picardWindowId" == "" ]

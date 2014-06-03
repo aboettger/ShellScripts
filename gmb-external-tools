@@ -1,14 +1,14 @@
 #! /bin/bash
 
-echo "$1"
-dir="$1"
+dir=$(dirname "$1")
 
-EXTERNAL_TOOLS=$(yad --center --list --no-headers --class="GMB-External-Tools" --name="GMB External Tools" --window-icon="gtk-execute" --image="gtk-execute" --text="Run a command on \"$dir\"" --column="" "Picard" "Add cover mp3/flac" --width=350 --height=270 --title="External Tools - GMB" --button="Close:1" --button="gtk-ok:0")
+EXTERNAL_TOOLS=$(yad --center --list --no-headers --class="GMB-External-Tools" --name="GMB External Tools" --window-icon="gtk-execute" --image="gtk-execute" --text="Run a command on \"$(dirname "$dir")\"" --column="" "Picard" "Add cover mp3/flac" --width=350 --height=270 --title="External Tools - GMB" --button="Close:1" --button="gtk-ok:0")
 
 EXTERNAL_TOOLS_fix=`echo "$EXTERNAL_TOOLS" | sed -e "s/|//"`
 
 if [[ $EXTERNAL_TOOLS_fix = "Picard" ]]; then
-  gmb-call-picard "$dir"
+  # gmb-call-picard ermittelt den Verzeichnisnamen selbst
+  gmb-call-picard "$1"
 elif [[ $EXTERNAL_TOOLS_fix = "Add cover mp3/flac" ]]; then
   add_cover_mp3 "$dir"; add_cover_flac "$dir"
 else

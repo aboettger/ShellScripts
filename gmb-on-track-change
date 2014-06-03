@@ -114,6 +114,7 @@ else
     picardWindowId=$(wmctrl -lp | grep "$pid" | awk '{print $1}')
   done
   xdotool windowminimize "$picardWindowId"
+#   xdotool search --pid "$pid"  --name '\*' windowminimize
 fi
 
 exit 0

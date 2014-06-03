@@ -61,5 +61,8 @@ else
   add_cover "$1" cover.png
   add_cover "$1" cover.jpg
 fi
+
+notify-send "$(basename $0)" 'done'
+
 exit 0
 

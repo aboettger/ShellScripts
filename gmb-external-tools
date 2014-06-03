@@ -8,9 +8,9 @@ EXTERNAL_TOOLS_fix=`echo "$EXTERNAL_TOOLS" | sed -e "s/|//"`
 
 if [[ $EXTERNAL_TOOLS_fix = "Picard" ]]; then
   # gmb-call-picard ermittelt den Verzeichnisnamen selbst
-  gmb-call-picard "$1"
+  $HOME/bin/gmb-call-picard "$1"
 elif [[ $EXTERNAL_TOOLS_fix = "Add cover mp3/flac" ]]; then
-  add_cover_mp3 "$dir"; add_cover_flac "$dir"
+  $HOME/bin/add_cover_mp3 "$dir"; $HOME/bin/add_cover_flac "$dir"
 else
   exit
 fi

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#Pipe erstellen
+PIPE="$HOME/.pipe.tmp"
+rm "$PIPE" 2> /dev/null
+mkfifo "$PIPE"
+exec 3<> "$PIPE"
+
+#Yad Dialog erstellen
+
+pattern=$(yad \
+    --class="List-PDF-Pattern" \
+    --name="List PDF Pattern" \
+    --title="Suchbegriff" \
+    --text="Bitte den Suchbegriff eingeben:" \
+    --image="dialog" \
+    --entry \
+    --center)
+[[ -z "$pattern" ]] && exit 1
+
+pdfgrep -r "$pattern" "${PWD}/Eisenbahn/Eisenbahnliteratur/Unbekannt/Tillig TT-Katalog 2013_2014 (2377)" 2> /dev/null | awk -F ":" '{out=$2; for(i=3;i<=NF;i++){out=out":"$i}; print $1}' >&3
+
+yad \
+  --center \
+  --class="List-PDF" \
+  --name="List PDF" \
+  --text="Der Suchbegriff \"$pattern\" wurde in diesen PDFs gefunden" \
+  --save \
+  --list \
+  --column="Gefunden in" \
+  --button="Close:1" \
+  --width=700 \
+  --height=500 \
+  --title="Select a PDF..." \
+  --dclick-action="xdg-open" \
+  --quoted-output <&3
+
+rm "$PIPE" 2> /dev/null
+
+exit 0

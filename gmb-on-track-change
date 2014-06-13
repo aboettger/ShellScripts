@@ -91,9 +91,10 @@ then
 else
   dirEscaped=${dir//\[/\\[}
   dirEscaped=${dirEscaped//\]/\\]}
-  dirEscaped=${dirEscaped//\?/\\?}
+#  dirEscaped=${dirEscaped//\?/\\?}
   dirEscaped=${dirEscaped//\^/\\^}
   dirEscaped=${dirEscaped//\$/\\$}
+
   matchedValue=$(grep "$dirEscaped" "$pathNameHistory")
 fi
 

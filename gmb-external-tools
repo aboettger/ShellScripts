@@ -2,13 +2,21 @@
 
 dir=$(dirname "$1")
 
-EXTERNAL_TOOLS=$(yad --center --list --no-headers --class="GMB-External-Tools" --name="GMB External Tools" --window-icon="gtk-execute" --image="gtk-execute" --text="Run a command on \"$(dirname "$dir")\"" --column="" "Picard" "Add cover mp3/flac" --width=350 --height=270 --title="External Tools - GMB" --button="Close:1" --button="gtk-ok:0")
+EXTERNAL_TOOLS=$(yad --center --list --no-headers --class="GMB-External-Tools" --name="GMB External Tools" --window-icon="gtk-execute" --image="gtk-execute" --text="Run a command on \"$(dirname "$dir")\"" --column="" \
+"Open with Picard" "Open with Ex Falso" "Open with Easy TAG" "Open Terminal" "Add cover mp3/flac" "" \
+--width=350 --height=270 --title="External Tools - GMB" --button="Close:1" --button="gtk-ok:0")
 
 EXTERNAL_TOOLS_fix=`echo "$EXTERNAL_TOOLS" | sed -e "s/|//"`
 
-if [[ $EXTERNAL_TOOLS_fix = "Picard" ]]; then
+if [[ $EXTERNAL_TOOLS_fix = "Open with Picard" ]]; then
   # gmb-call-picard ermittelt den Verzeichnisnamen selbst
   $HOME/bin/gmb-call-picard "$1"
+elif [[ $EXTERNAL_TOOLS_fix = "Open with Ex Falso" ]]; then
+  $HOME/bin/gmb-call-exfalso "$1"
+elif [[ $EXTERNAL_TOOLS_fix = "Open with Easy TAG" ]]; then
+  $HOME/bin/gmb-call-easytag "$1"
+elif [[ $EXTERNAL_TOOLS_fix = "Open Terminal" ]]; then
+  $HOME/bin/gmb-call-terminal "$1"
 elif [[ $EXTERNAL_TOOLS_fix = "Add cover mp3/flac" ]]; then
   $HOME/bin/add_cover_mp3 "$dir"; $HOME/bin/add_cover_flac "$dir"
 else

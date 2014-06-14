@@ -2,14 +2,16 @@
 
 values=$(yad \
   --form \
-  --field=Suchbegriff \
-  --field=Pfad \
-  --class="List-PDF-Pattern" \
-  --name="List PDF Pattern" \
-  --title="Suchbegriff und Verzeichnis" \
+  --field=Keyword \
+  --field=Path \
+  --class="Keyword-And-Path" \
+  --name="Keyword and Path" \
+  --title="$(basename $0) - Keyword and Path" \
   --center \
+  --width=400 \
   --separator="~/~" \
 )
+
 pattern=$(echo $values | awk -F "~/~" '{print $1}')
 [[ -z "$pattern" ]] && exit 1
 
@@ -18,24 +20,25 @@ path=$(echo $values | awk -F "~/~" '{print $2}')
 
 exec 3> >(yad \
   --center \
-  --class="List-PDF" \
-  --name="List PDF" \
-  --text="Der Suchbegriff \"$pattern\" wurde in diesen PDFs gefunden" \
+  --class="Search-Results" \
+  --name="Search Results" \
+  --text="The search term <b>\"$pattern\"</b> was found in these files. Double to open a file." \
   --save \
   --list \
-  --column="Gefunden in" \
+  --column="" \
   --button="Close:1" \
   --width=700 \
   --height=500 \
-  --title="Select a PDF..." \
+  --title="$(basename $0) - Search Results" \
   --dclick-action="xdg-open" \
   --quoted-output\
   --listen \
 )
 
 #exec 4> >(yad --progress --pulsate --auto-close --center)
-
+notify-send "$(basename $0)" "Start search for <b>$pattern</b> in <b>$path</b>"
 pdfgrep -r "$pattern" "$path" 2> /dev/null | awk -F ":" '{out=$2; for(i=3;i<=NF;i++){out=out":"$i}; print $1}' | uniq >&3
+notify-send "$(basename $0)" "Finished search for <b>$pattern</b> in <b>$path</b>"
 
 exec 3>&-
 #exec 4>&-

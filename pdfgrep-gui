@@ -1,26 +1,22 @@
 #!/bin/bash
 
-#Pipe erstellen
-PIPE="$HOME/.pipe.tmp"
-rm "$PIPE" 2> /dev/null
-mkfifo "$PIPE"
-exec 3<> "$PIPE"
-
-#Yad Dialog erstellen
-
-pattern=$(yad \
-    --class="List-PDF-Pattern" \
-    --name="List PDF Pattern" \
-    --title="Suchbegriff" \
-    --text="Bitte den Suchbegriff eingeben:" \
-    --image="dialog" \
-    --entry \
-    --center)
+values=$(yad \
+  --form \
+  --field=Suchbegriff \
+  --field=Pfad \
+  --class="List-PDF-Pattern" \
+  --name="List PDF Pattern" \
+  --title="Suchbegriff und Verzeichnis" \
+  --center \
+  --separator="~/~" \
+)
+pattern=$(echo $values | awk -F "~/~" '{print $1}')
 [[ -z "$pattern" ]] && exit 1
 
-pdfgrep -r "$pattern" "${PWD}/Eisenbahn/Eisenbahnliteratur/Unbekannt/Tillig TT-Katalog 2013_2014 (2377)" 2> /dev/null | awk -F ":" '{out=$2; for(i=3;i<=NF;i++){out=out":"$i}; print $1}' >&3
+path=$(echo $values | awk -F "~/~" '{print $2}')
+[[ -z "$path" ]] && exit 1
 
-yad \
+exec 3> >(yad \
   --center \
   --class="List-PDF" \
   --name="List PDF" \
@@ -33,8 +29,15 @@ yad \
   --height=500 \
   --title="Select a PDF..." \
   --dclick-action="xdg-open" \
-  --quoted-output <&3
+  --quoted-output\
+  --listen \
+)
 
-rm "$PIPE" 2> /dev/null
+#exec 4> >(yad --progress --pulsate --auto-close --center)
+
+pdfgrep -r "$pattern" "$path" 2> /dev/null | awk -F ":" '{out=$2; for(i=3;i<=NF;i++){out=out":"$i}; print $1}' | uniq >&3
+
+exec 3>&-
+#exec 4>&-
 
 exit 0

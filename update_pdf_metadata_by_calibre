@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# Scans the given directory and all subdirectories for the file
+# "metadata.opf". This file is created by Calibre. From this file data will be
+# extracted (title, author, series) and inserted into the PDFs, which are
+# exactly in the same directory.
+
+
+shopt -s nullglob
+shopt -s nocaseglob
+
+write_title() {
+  red="\e[0;31m"
+  green="\e[0;32m"
+  NC="\e[0m" # No Color
+  
+  find "$1" -depth -type f -name "metadata.opf"  | { while read -r metadata_path;
+    do
+      echo -e "${green}metadata found:${NC} $metadata_path"
+      dir_name=$(dirname "$metadata_path")
+      
+      series=$(xpath -q -e "//package/metadata/meta[@name='calibre:series']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
+      series_index=$(xpath -q -e "//package/metadata/meta[@name='calibre:series_index']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
+
+      title=$(xpath -q -e "//package/metadata/dc:title/text()" "$metadata_path")
+      author=$(xpath -q -e "//package/metadata/dc:creator/text()" "$metadata_path")
+
+      pdfs=$(find "$dir_name" -maxdepth 1 -type f -name '*.pdf' | wc -l)
+      
+      echo -e "${green}pdfs found:${NC} $pdfs"
+      
+      if [ "$pdfs" != "0" ]
+      then
+        find "$dir_name" -maxdepth 1 -type f -name "*.pdf" -print0 | xargs -0 exiftool -overwrite_original -Title="$title $series_index" -Author="$author"
+        echo -e "${green}updating title with:${NC} $title $series_index"
+        echo -e "${green}updating author with:${NC} $author"
+      fi
+      echo
+    done
+  }
+}
+
+[[ -z "$1" ]] && echo "Please specify a start directory." && exit 1
+
+write_title "$1"
+notify-send "$(basename $0)" 'done'
+
+exit 0

@@ -53,7 +53,7 @@ function echog() {
   printf -- "$(ck_gettext "$format")\n" "$@" >&2
 }
 
-write_title() {
+write_metadata() {
   red="\e[0;31m"
   green="\e[0;32m"
   NC="\e[0m" # No Color
@@ -116,7 +116,14 @@ write_title() {
 
 [[ -z "$1" ]] && logError "Please specify a start directory." && exit 1
 
-write_title "$1"
+if [ -f "$1" ]
+then
+  search_path=$(dirname "$1")
+else
+  search_path=$1
+fi
+echo $search_path
+write_metadata "$search_path"
 notify-send "$(basename $0)" 'done'
 
 exit 0

@@ -24,6 +24,7 @@ write_title() {
       
       title=$(xpath -q -e "//package/metadata/dc:title/text()" "$metadata_path")
       author=$(xpath -q -e "//package/metadata/dc:creator/text()" "$metadata_path")
+      keywords=$(xpath -q -e "//package/metadata/dc:subject/text()" "$metadata_path")
       
       pdfs=$(find "$dir_name" -maxdepth 1 -type f -name '*.pdf' | wc -l)
       
@@ -33,11 +34,13 @@ write_title() {
         do
           titlePDF=$(pdfinfo "$pdf_path" | grep "Title" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
           authorPDF=$(pdfinfo "$pdf_path" | grep "Author" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
+          keywordsPDF=$(pdfinfo "$pdf_path" | grep "Keywords" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
           
           newTitle="$title $series_index"
           newAuthor="$author"
+          newKeywords="$keywords"
           
-          if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ]
+          if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ] && [ "$keywordsPDF" == "$newKeywords" ]
           then
             echo -e "\t${green}no update required.${NC}"
           else
@@ -50,6 +53,11 @@ write_title() {
             then
               exiftool -overwrite_original -Author="$newAuthor" "$pdf_path"
               echo -e "\t${green}updating author with:${NC} $newAuthor"
+            fi
+            if [ "$keywordsPDF" != "$newKeywords" ]
+            then
+              exiftool -overwrite_original -Keywords="$newKeywords" "$pdf_path"
+              echo -e "\t${green}updating keywords with:${NC} $newKeywords"
             fi
           fi
         done

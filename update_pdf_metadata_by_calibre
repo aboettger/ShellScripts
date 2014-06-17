@@ -14,28 +14,47 @@ write_title() {
   green="\e[0;32m"
   NC="\e[0m" # No Color
   
-  find "$1" -depth -type f -name "metadata.opf"  | { while read -r metadata_path;
+  find "$1" -depth -type f -name "metadata.opf" | { while read -r metadata_path;
     do
       echo -e "${green}metadata found:${NC} $metadata_path"
       dir_name=$(dirname "$metadata_path")
       
       series=$(xpath -q -e "//package/metadata/meta[@name='calibre:series']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
       series_index=$(xpath -q -e "//package/metadata/meta[@name='calibre:series_index']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
-
+      
       title=$(xpath -q -e "//package/metadata/dc:title/text()" "$metadata_path")
       author=$(xpath -q -e "//package/metadata/dc:creator/text()" "$metadata_path")
-
+      
       pdfs=$(find "$dir_name" -maxdepth 1 -type f -name '*.pdf' | wc -l)
       
       echo -e "${green}pdfs found:${NC} $pdfs"
       
-      if [ "$pdfs" != "0" ]
-      then
-        find "$dir_name" -maxdepth 1 -type f -name "*.pdf" -print0 | xargs -0 exiftool -overwrite_original -Title="$title $series_index" -Author="$author"
-        echo -e "${green}updating title with:${NC} $title $series_index"
-        echo -e "${green}updating author with:${NC} $author"
-      fi
-      echo
+      find "$dir_name" -maxdepth 1 -type f -name "*.pdf" | { while read -r pdf_path;
+        do
+          titlePDF=$(pdfinfo "$pdf_path" | grep "Title" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
+          authorPDF=$(pdfinfo "$pdf_path" | grep "Author" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
+          
+          newTitle="$title $series_index"
+          newAuthor="$author"
+          
+          if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ]
+          then
+            echo -e "\t${green}no update required.${NC}"
+          else
+            if [ "$titlePDF" != "$newTitle" ]
+            then
+              exiftool -overwrite_original -Title="$newTitle" "$pdf_path"
+              echo -e "\t${green}updating title with:${NC} $newTitle"
+            fi
+            if [ "$authorPDF" != "$newAuthor" ]
+            then
+              exiftool -overwrite_original -Author="$newAuthor" "$pdf_path"
+              echo -e "\t${green}updating author with:${NC} $newAuthor"
+            fi
+          fi
+        done
+        echo
+      }
     done
   }
 }
@@ -46,3 +65,8 @@ write_title "$1"
 notify-send "$(basename $0)" 'done'
 
 exit 0
+
+
+
+
+

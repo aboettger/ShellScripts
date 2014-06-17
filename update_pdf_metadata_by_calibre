@@ -80,9 +80,9 @@ write_title() {
           authorPDF=$(pdfinfo "$pdf_path" | grep "Author" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
           keywordsPDF=$(exiftool -S -Keywords "$pdf_path" | grep "Keywords" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/\./\n/g' | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-          newTitle="$title $series_index"
-          newAuthor="$author"
-          newKeywords="$keywords"
+          newTitle=$(echo "$title $series_index" | sed 's/^[ \t]*//;s/[ \t]*$//')
+          newAuthor=$(echo "$author" | sed 's/^[ \t]*//;s/[ \t]*$//')
+          newKeywords=$(echo "$keywords" | sed 's/^[ \t]*//;s/[ \t]*$//')
           
           if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ] && [ "$keywordsPDF" == "$newKeywords" ]
           then
@@ -114,7 +114,7 @@ write_title() {
   }
 }
 
-[[ -z "$1" ]] && echo "Please specify a start directory." && exit 1
+[[ -z "$1" ]] && logError "Please specify a start directory." && exit 1
 
 write_title "$1"
 notify-send "$(basename $0)" 'done'

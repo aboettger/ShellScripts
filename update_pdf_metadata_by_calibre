@@ -9,6 +9,50 @@
 shopt -s nullglob
 shopt -s nocaseglob
 
+# Enable alias expansion in command substitution
+shopt -s expand_aliases
+
+# Vefify that we have gettext available
+gettext "Bye." &> /dev/null
+if [ $? -gt 0 ]; then
+  alias ck_gettext="echo -e"
+else
+  alias ck_gettext="gettext -s --"
+fi
+
+# Prints OK or FAILED! depending on previous command return value
+function okfail () {
+  if [ $? -gt 0 ]; then
+    logError "There was an error. Aborting."
+    return 1
+  else
+    logInfo "OK"
+    return 0
+  fi
+}
+
+function logInfo () {
+  green="\e[0;32m"
+  echog "${green}$1${TOA}"
+}
+
+function logWarn () {
+  yellow="\e[0;33m"
+  echog "${yellow}$1${TOA}"
+}
+
+function logError () {
+  red="\e[0;31m"
+  echog "${red}$1${TOA}"
+}
+
+## echo with newline at the end
+function echog() {
+  local format="$1"
+  shift
+  printf -- "$(ck_gettext "$format")\n" "$@" >&2
+}
+
 write_title() {
   red="\e[0;31m"
   green="\e[0;32m"
@@ -47,16 +91,19 @@ write_title() {
             if [ "$titlePDF" != "$newTitle" ]
             then
               exiftool -overwrite_original -Title="$newTitle" "$pdf_path"
+              okfail; [ $? -gt 0 ] && exit 1
               echo -e "\t${green}updating title with:${NC} $newTitle"
             fi
             if [ "$authorPDF" != "$newAuthor" ]
             then
               exiftool -overwrite_original -Author="$newAuthor" "$pdf_path"
+              okfail; [ $? -gt 0 ] && exit 1
               echo -e "\t${green}updating author with:${NC} $newAuthor"
             fi
             if [ "$keywordsPDF" != "$newKeywords" ]
             then
               exiftool -overwrite_original -Keywords="$newKeywords" "$pdf_path"
+              okfail; [ $? -gt 0 ] && exit 1
               echo -e "\t${green}updating keywords with:${NC} $newKeywords"
             fi
           fi

@@ -2,7 +2,7 @@
 #
 # Scans the given directory and all subdirectories for the file
 # "metadata.opf". This file is created by Calibre. From this file data will be
-# extracted (title, author, series) and inserted into the PDFs, which are
+# extracted (title, author, series, keywords) and inserted into the PDFs, which are
 # exactly in the same directory.
 
 

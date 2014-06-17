@@ -34,8 +34,8 @@ write_title() {
         do
           titlePDF=$(pdfinfo "$pdf_path" | grep "Title" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
           authorPDF=$(pdfinfo "$pdf_path" | grep "Author" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
-          keywordsPDF=$(pdfinfo "$pdf_path" | grep "Keywords" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
-          
+          keywordsPDF=$(exiftool -S -Keywords "$pdf_path" | grep "Keywords" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/\./\n/g' | sed 's/^[ \t]*//;s/[ \t]*$//')
+
           newTitle="$title $series_index"
           newAuthor="$author"
           newKeywords="$keywords"

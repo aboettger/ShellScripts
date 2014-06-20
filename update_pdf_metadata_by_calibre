@@ -57,23 +57,23 @@ write_metadata() {
   red="\e[0;31m"
   green="\e[0;32m"
   NC="\e[0m" # No Color
-  
+
   find "$1" -depth -type f -name "metadata.opf" | { while read -r metadata_path;
     do
       echo -e "${green}metadata found:${NC} $metadata_path"
       dir_name=$(dirname "$metadata_path")
-      
+
       series=$(xpath -q -e "//package/metadata/meta[@name='calibre:series']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
       series_index=$(xpath -q -e "//package/metadata/meta[@name='calibre:series_index']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
-      
+
       title=$(xpath -q -e "//package/metadata/dc:title/text()" "$metadata_path")
       author=$(xpath -q -e "//package/metadata/dc:creator/text()" "$metadata_path")
       keywords=$(xpath -q -e "//package/metadata/dc:subject/text()" "$metadata_path")
-      
+
       pdfs=$(find "$dir_name" -maxdepth 1 -type f -name '*.pdf' | wc -l)
-      
+
       echo -e "${green}pdfs found:${NC} $pdfs"
-      
+
       find "$dir_name" -maxdepth 1 -type f -name "*.pdf" | { while read -r pdf_path;
         do
           titlePDF=$(pdfinfo "$pdf_path" | grep "Title" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
@@ -83,7 +83,7 @@ write_metadata() {
           newTitle=$(echo "$title $series_index" | sed 's/^[ \t]*//;s/[ \t]*$//')
           newAuthor=$(echo "$author" | sed 's/^[ \t]*//;s/[ \t]*$//')
           newKeywords=$(echo "$keywords" | sed 's/^[ \t]*//;s/[ \t]*$//')
-          
+
           if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ] && [ "$keywordsPDF" == "$newKeywords" ]
           then
             echo -e "\t${green}no update required.${NC}"
@@ -120,15 +120,10 @@ if [ -f "$1" ]
 then
   search_path=$(dirname "$1")
 else
-  search_path=$1
+  search_path="$1"
 fi
-echo $search_path
+
 write_metadata "$search_path"
 notify-send "$(basename $0)" 'done'
 
 exit 0
-
-
-
-
-

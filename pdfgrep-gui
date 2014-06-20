@@ -5,12 +5,17 @@ function open_uri () {
 }
 export -f open_uri
 
+start_pattern=$1
+start_path=$2
+[[ -z $1 ]] && start_pattern=""
+[[ -z $2 ]] && start_path=$HOME
+
 values=$(yad \
   --form \
   --field=Keyword \
-  "" \
+  "$start_pattern" \
   --field=Path:DIR \
-  "${HOME}" \
+  "$start_path" \
   --class="Keyword-And-Path" \
   --name="Keyword and Path" \
   --title="$(basename $0) - Keyword and Path" \

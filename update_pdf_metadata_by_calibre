@@ -12,6 +12,11 @@ shopt -s nocaseglob
 # Enable alias expansion in command substitution
 shopt -s expand_aliases
 
+red="\e[0;31m"
+green="\e[0;32m"
+yellow="\e[0;33m"
+TOA="\e[0m" # No Color
+
 # Vefify that we have gettext available
 gettext "Bye." &> /dev/null
 if [ $? -gt 0 ]; then
@@ -32,17 +37,14 @@ function okfail () {
 }
 
 function logInfo () {
-  green="\e[0;32m"
   echog "${green}$1${TOA}"
 }
 
 function logWarn () {
-  yellow="\e[0;33m"
   echog "${yellow}$1${TOA}"
 }
 
 function logError () {
-  red="\e[0;31m"
   echog "${red}$1${TOA}"
 }
 
@@ -54,13 +56,9 @@ function echog() {
 }
 
 write_metadata() {
-  red="\e[0;31m"
-  green="\e[0;32m"
-  NC="\e[0m" # No Color
-
   find "$1" -depth -type f -name "metadata.opf" | { while read -r metadata_path;
     do
-      echo -e "${green}metadata found:${NC} $metadata_path"
+      echo -e "${green}metadata found:${TOA} $metadata_path"
       dir_name=$(dirname "$metadata_path")
 
       series=$(xpath -q -e "//package/metadata/meta[@name='calibre:series']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
@@ -72,7 +70,7 @@ write_metadata() {
 
       pdfs=$(find "$dir_name" -maxdepth 1 -type f -name '*.pdf' | wc -l)
 
-      echo -e "${green}pdfs found:${NC} $pdfs"
+      echo -e "${green}pdfs found:${TOA} $pdfs"
 
       find "$dir_name" -maxdepth 1 -type f -name "*.pdf" | { while read -r pdf_path;
         do
@@ -86,25 +84,25 @@ write_metadata() {
 
           if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ] && [ "$keywordsPDF" == "$newKeywords" ]
           then
-            echo -e "\t${green}no update required.${NC}"
+            echo -e "\t${green}no update required.${TOA}"
           else
             if [ "$titlePDF" != "$newTitle" ]
             then
               exiftool -overwrite_original -Title="$newTitle" "$pdf_path"
               okfail; [ $? -gt 0 ] && exit 1
-              echo -e "\t${green}updating title with:${NC} $newTitle"
+              echo -e "\t${green}updating title with:${TOA} $newTitle"
             fi
             if [ "$authorPDF" != "$newAuthor" ]
             then
               exiftool -overwrite_original -Author="$newAuthor" "$pdf_path"
               okfail; [ $? -gt 0 ] && exit 1
-              echo -e "\t${green}updating author with:${NC} $newAuthor"
+              echo -e "\t${green}updating author with:${TOA} $newAuthor"
             fi
             if [ "$keywordsPDF" != "$newKeywords" ]
             then
               exiftool -overwrite_original -Keywords="$newKeywords" "$pdf_path"
               okfail; [ $? -gt 0 ] && exit 1
-              echo -e "\t${green}updating keywords with:${NC} $newKeywords"
+              echo -e "\t${green}updating keywords with:${TOA} $newKeywords"
             fi
           fi
         done
@@ -124,6 +122,6 @@ else
 fi
 
 write_metadata "$search_path"
-notify-send "$(basename $0)" 'done'
+notify-send "$(basename "$0")" 'done'
 
 exit 0

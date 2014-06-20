@@ -34,6 +34,7 @@ for (( i=0; i < orig_length; i++ )); do
   fi
 done
 
+pidwget=$(ps -C wget -o pid=)
 pidrsync=$(ps -C rsync -o pid=)
 pidaria2c=$(ps -C aria2c -o pid=)
 # Irgendwie besitzt die GnomeShell manchmal(?) keinen angemeldeten Benutzer in `users`?
@@ -44,6 +45,7 @@ secUp=$(awk '{print $1 * 1000}' /proc/uptime)
 userLen=${#newUsersList[@]}
 loggedin=${newUsersList[*]}
 
+echo "PID [wget]: $pidwget"
 echo "PID [rsync]: $pidrsync"
 echo "PID [aria2c]: $pidaria2c"
 echo "PID [init --user]: $init_user_pid"
@@ -53,7 +55,7 @@ echo "Uptime (s): $(uptime -p) ($secUp / 3600000)"
 echo ""
 
 # mehr als eine Stunde uptime
-if [ "$secUp" -gt 3600000 ] && [ "$pidrsync" == "" ] && [ "$pidaria2c" == "" ]
+if [ "$secUp" -gt 3600000 ] && [ "$pidrsync" == "" ] && [ "$pidaria2c" == "" ] && [ "$pidwget" == "" ]
 then
   if [ $userLen -eq 0 ] && [ "$init_user_pid" == "" ]
   then
@@ -63,5 +65,5 @@ then
     echo "kein shutdown (users > 0 | PID [init --user] > 0)"
   fi
 else
-  echo "kein shutdown (uptime < 3600000 | PID [rsync] > 0 | PID [aria2c] > 0)"
+  echo "kein shutdown (uptime < 3600000 | PID [rsync] > 0 | PID [aria2c] > 0 | PID [wget] > 0)"
 fi

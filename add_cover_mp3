@@ -28,24 +28,24 @@ shopt -s nullglob
 shopt -s nocaseglob
 
 add_cover() {
-  red="\e[0;31m"
+  #red="\e[0;31m"
   green="\e[0;32m"
   NC="\e[0m" # No Color
-  
+
   find "$1" -depth -type f -name "$2"  | { while read -r image_path;
     do
       echo -e "${green}Cover found:${NC} $image_path"
       dir_name=$(dirname "$image_path")
-      
+
       mp3s=$(find "$dir_name" -maxdepth 1 -type f -name '*.mp3' | wc -l)
-      
+
       echo -e "${green}MP3s found:${NC} $mp3s"
-      
+
       if [ "$mp3s" != "0" ]
       then
         find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
         find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$image_path"~FRONT_COVER
-        
+
         rm "$image_path"
       fi
       echo
@@ -62,7 +62,6 @@ else
   add_cover "$1" cover.jpg
 fi
 
-notify-send "$(basename $0)" 'done'
+notify-send "$(basename "$0")" 'done'
 
 exit 0
-

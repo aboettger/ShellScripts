@@ -18,7 +18,7 @@
 #         NOTES: ---
 #        AUTHOR: Andreas Böttger (aboettger), andreas.boettger@gmx.de
 #  ORGANIZATION:
-#       CREATED: Fr 25 Apr 2014 18:12:15 CEST 
+#       CREATED: Fr 25 Apr 2014 18:12:15 CEST
 #      REVISION:  ---
 #===============================================================================
 
@@ -28,24 +28,24 @@ shopt -s nullglob
 shopt -s nocaseglob
 
 add_cover() {
-  red="\e[0;31m"
+  #red="\e[0;31m"
   green="\e[0;32m"
   NC="\e[0m" # No Color
-  
+
   find "$1" -depth -type f -name "$2"  | { while read -r image_path;
     do
       echo -e "${green}Cover found:${NC} $image_path"
       dir_name=$(dirname "$image_path")
-      
+
       flacs=$(find "$dir_name" -maxdepth 1 -type f -name '*.flac' | wc -l)
-      
+
       echo -e "${green}FLACs found:${NC} $flacs"
-      
+
       if [ "$flacs" != "0" ]
       then
         find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --remove --block-type=PICTURE
         find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --import-picture-from="$image_path"
-        
+
         rm "$image_path"
       fi
       echo
@@ -62,6 +62,6 @@ else
   add_cover "$1" cover.jpg
 fi
 
-notify-send "$(basename $0)" 'done'
+notify-send "$(basename "$0")" 'done'
 
 exit 0

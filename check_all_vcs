@@ -1,0 +1,53 @@
+#!/bin/bash -
+#===============================================================================
+#
+#          FILE: pull_all_vcs
+#
+#         USAGE: ./pull_all_vcs
+#
+#   DESCRIPTION:
+#
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: andreas.boettger@gmx.de
+#  ORGANIZATION:
+#       CREATED: Do 24 Apr 2014 12:38:05 CEST
+#      REVISION:  ---
+#===============================================================================
+
+# set -o nounset                              # Treat unset variables as an error
+
+rootDir="$HOME"
+if [ "$1" != "" ]
+then
+  rootDir=$(realpath "$1")
+fi
+
+red='\e[0;31m'
+green='\e[0;32m'
+yellow='\e[0;33m'
+NC='\e[0m' # No Color
+
+if [ "$(command -v git)" == "" ]
+then
+  echo -e "${red}git not installed${NC}"
+else
+  # GIT source code management system
+  echo -e "${green}***** Checking GIT repositories in ${yellow}$rootDir${NC}"
+  echo
+  find "$rootDir" -type d -name .git | sort | while read line; do
+    workingDir=$(dirname "$line")
+    echo -e "${yellow}$workingDir${NC}"
+    cd "$workingDir"
+#    echo -e "${green}$(git pull)${NC}"
+check=$(git log HEAD..origin)
+echo $check
+
+    echo
+  done
+fi
+
+
+

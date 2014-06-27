@@ -1,8 +1,13 @@
 #!/bin/bash
 
-next=$(date -d "5 +24 hours" +%s)
+#next=$(date -d "5 +24 hours" +%s)
 #echo $next
 #echo $next > /sys/class/rtc/rtc0/wakealarm
-sh -c "echo $next > /sys/class/rtc/rtc0/wakealarm"
-cat /proc/driver/rtc
+rtcwake -m no --time "$(date -d "5 +24 hours" +%s)"
 
+# while [ -z "$test" ]
+# do
+#   test=$(sh -c "echo $next > /sys/class/rtc/rtc0/wakealarm")
+# done
+cat /sys/class/rtc/rtc0/wakealarm
+cat /proc/driver/rtc

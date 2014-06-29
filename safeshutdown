@@ -26,51 +26,39 @@ yellow="\e[0;33m"
 TOA="\e[0m" # No Color
 
 minUptime=3600000
-
-usersList=$(/usr/bin/users)
-newUsersList=(${usersList[*]})
-orig_length=${#usersList[@]}
-
-for (( i=0; i < orig_length; i++ )); do
-  # echo "$i: ${usersList[i]}"
-  user="${usersList[i]}"
-  #echo $user
-  if [ "$user" == "(unknown)" ]
-  then
-    unset newUsersList[i]
-  fi
-done
+uptime=$(awk '{print $1*1000}' /proc/uptime)
+uptimeHuman=$(uptime -p)
 
 pidwget=$(ps -C wget -o pid=)
 pidrsync=$(ps -C rsync -o pid=)
 pidaria2c=$(ps -C aria2c -o pid=)
-# Irgendwie besitzt die GnomeShell manchmal(?) keinen angemeldeten Benutzer in `users`?
-#init_user=$(ps xa | grep -v "grep" | grep "init --user" | awk '{ print $1 }')
-init_user_pid=$(pgrep -f 'init --user')
 
 secUp=$(awk '{print $1 * 1000}' /proc/uptime)
-userLen=${#newUsersList[@]}
-loggedin=${newUsersList[*]}
+userLen=$(last | grep -c "still logged in")
 
+echo
 echo -e "PID [${green}wget${TOA}]: ${yellow}$pidwget${TOA}"
 echo -e "PID [${green}rsync${TOA}]: ${yellow}$pidrsync${TOA}"
 echo -e "PID [${green}aria2c${TOA}]: ${yellow}$pidaria2c${TOA}"
-echo -e "PID [${green}init --user${TOA}]: ${yellow}$init_user_pid${TOA}"
+echo
 echo -e "Users: \c"; if [ "$userLen" -eq 0 ]; then echo -e "${green}$userLen${TOA}"; else echo -e "${yellow}$userLen${TOA}"; fi
-echo -e "Angemeldet: ${yellow}$loggedin${TOA}"
-echo -e "Uptime (ms) [${green}$minUptime${TOA}]: \c"; if [ "$secUp" -gt $minUptime ]; then echo -e "${green}$(uptime -p) ($minUptime)${TOA}"; else echo -e "${yellow}$(uptime -p) ($minUptime)${TOA}"; fi
+echo -e "${yellow}$(last -w | grep "still logged in")${TOA}"
+echo
+echo -e "Uptime (ms) [${green}$minUptime${TOA}]: \c"; if [ "$secUp" -gt $minUptime ]; then echo -e "${green}$uptime ($uptimeHuman)${TOA}"; else echo -e "${yellow}$uptime ($uptimeHuman)${TOA}"; fi
 echo
 
 # mehr als eine Stunde uptime
 if [ "$secUp" -gt $minUptime ] && [ "$pidrsync" == "" ] && [ "$pidaria2c" == "" ] && [ "$pidwget" == "" ]
 then
-  if [ $userLen -eq 0 ] && [ "$init_user_pid" == "" ]
+  if [ "$userLen" -eq 0 ]
   then
     /sbin/shutdown -P now
-    echo "shutdown"
+    echo -e "${green}shutdown${TOA}"
   else
-    echo "kein shutdown (users > 0 | PID [init --user] > 0)"
+    echo -e "${yellow}no shutdown (users > 0)${TOA}"
   fi
 else
-  echo "kein shutdown (uptime < $minUptime | PID [rsync] > 0 | PID [aria2c] > 0 | PID [wget] > 0)"
+  echo -e "${yellow}no shutdown (uptime < $minUptime | PID [rsync] > 0 | PID [aria2c] > 0 | PID [wget] > 0)${TOA}"
 fi
+echo
+exit 0

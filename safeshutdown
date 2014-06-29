@@ -1,9 +1,9 @@
 #!/bin/bash -
 #===============================================================================
 #
-#          FILE: savepoweroff
+#          FILE: safeshutdown
 #
-#         USAGE: ./savepoweroff
+#         USAGE: ./safeshutdown
 #
 #   DESCRIPTION:
 #

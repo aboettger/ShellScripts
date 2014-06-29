@@ -58,7 +58,7 @@ then
     echo -e "${yellow}no shutdown (users > 0)${TOA}"
   fi
 else
-  echo -e "${yellow}no shutdown (uptime < $minUptime | PID [rsync] > 0 | PID [aria2c] > 0 | PID [wget] > 0)${TOA}"
+  echo -e "${yellow}no shutdown (users > 0 | uptime < $minUptime | PID [rsync] > 0 | PID [aria2c] > 0 | PID [wget] > 0)${TOA}"
 fi
 echo
 exit 0

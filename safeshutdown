@@ -34,7 +34,7 @@ pidrsync=$(ps -C rsync -o pid=)
 pidaria2c=$(ps -C aria2c -o pid=)
 
 secUp=$(awk '{print $1 * 1000}' /proc/uptime)
-userLen=$(last | grep -c "still logged in")
+userLen=$(last -w | grep "still logged in" | sed "/^(unknown)/d" | wc -l ) 
 
 echo
 echo -e "PID [${green}wget${TOA}]: ${yellow}$pidwget${TOA}"
@@ -42,7 +42,7 @@ echo -e "PID [${green}rsync${TOA}]: ${yellow}$pidrsync${TOA}"
 echo -e "PID [${green}aria2c${TOA}]: ${yellow}$pidaria2c${TOA}"
 echo
 echo -e "Users: \c"; if [ "$userLen" -eq 0 ]; then echo -e "${green}$userLen${TOA}"; else echo -e "${yellow}$userLen${TOA}"; fi
-echo -e "${yellow}$(last -w | grep "still logged in")${TOA}"
+echo -e "${yellow}$(last -w | grep "still logged in" | sed "/^(unknown)/d")${TOA}"
 echo
 echo -e "Uptime (ms) [${green}$minUptime${TOA}]: \c"; if [ "$secUp" -gt $minUptime ]; then echo -e "${green}$uptime ($uptimeHuman)${TOA}"; else echo -e "${yellow}$uptime ($uptimeHuman)${TOA}"; fi
 echo

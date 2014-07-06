@@ -1,0 +1,84 @@
+#!/bin/bash
+#===============================================================================
+#
+#  USAGE: create_railroad_keywords_from_pdf pdf-file
+#  REQUIREMENTS: calibre
+#
+#===============================================================================
+
+red="\e[0;31m"
+green="\e[0;32m"
+yellow="\e[0;33m"
+TOA="\e[0m" # No Color
+
+function logInfo () {
+    echo -e "${green}$1${TOA}"
+}
+
+function logWarn () {
+  echo -e "${yellow}$1${TOA}"
+}
+
+function logError () {
+  echo -e "${red}$1${TOA}"
+}
+
+
+test_path="$2"
+
+if [ "$1" == "test" ]; then
+
+  test_path="$2"
+
+  if [ ! -d "$test_path" ]; then
+    echo "Kein Verzeichnis mit Testdaten gefunden ($test_path)"
+    exit 1
+  fi
+
+  find "$test_path" -type f -name 'test-*.txt' | { while read -r test_case;
+    do
+      echo "$test_case"
+      pattern=$(less "$test_case" | grep 'pattern=' | gawk  -F 'pattern=' '{print $2}')
+      #logInfo "$pattern"
+      test_results=$(less "$test_case" | sed '/^pattern=/d' | sed '/^$/d' | sed '/^#/ d' | grep -oaE "$pattern" | sed -e 's/^ *//' | sed -e 's/ *$//' | sed '/^$/d' | sort -b | uniq)
+      #echo "$test_results"
+      matched_elements=$(echo "$test_results" | sed '/^$/d' | wc -l)
+      given_elements=$(less "$test_case" | sed '/^pattern=/d' | sed '/^$/d' | sed '/^#/ d' | wc -l)
+      logInfo "TestCase: $(basename "$test_case")"
+      if test "$matched_elements" -lt "$given_elements"; then
+        logError "Test failed, to few elements found: $matched_elements/$given_elements"
+        exit 1
+      elif test "$matched_elements" -gt "$given_elements"; then
+        logError "Test failed, to many elements found: $matched_elements/$given_elements"
+        exit 1
+      else
+        logInfo "Test OK: $matched_elements/$given_elements"
+      fi
+  done }
+elif [ "$1" == "run" ]; then
+  if [ ! -d "$test_path" ]; then
+    echo "Kein Verzeichnis mit RegEx-Dateien gefunden ($test_path)"
+    exit 1
+  fi
+
+  if [ ! -f "$3" ]; then
+    logError "File not found \"$3\""
+    exit 1
+  else
+    find "$test_path" -type f -name 'test-*.txt' | { while read -r test_case;
+    do
+      # remove UTF8 NO-BREAK
+      # remove UTF8 THIN SPACE
+      # remove UTF8 HAIR SPACE
+      # remove UTF8 ZERO WIDTH SPACE
+      CHARS=$(python -c 'print u"\u00A0\u2009\u200A\u200B".encode("utf8")')
+      pattern=$(less "$test_case" | grep 'pattern=' | gawk  -F 'pattern=' '{print $2}')
+      #echo "$pattern"
+      #pdftotext -q "$3" - | tr -d '\2009' | tr -d '\200A' | tr -d '\200B' | tr '\n' ' ' | sed -e "s/[[:space:]]\{2,\}/ /g" | grep -oaE "$pattern" | sed '/^$/d' | sed -e 's/^ *//' | sed -e 's/ *$//' | sed -e "s/^Baureihe/BR/" | sort -b | uniq  2>/dev/null
+      pdftotext -q "$3" - | sed 's/['"$CHARS"']/ /g' | tr '\n' ' ' | sed -e "s/[[:space:]]\{2,\}/ /g" | grep -oaE "$pattern" | sed '/^$/d' | sed -e 's/^ *//' | sed -e 's/ *$//' | sed -e 's/[.,]*$//' | sort -b | uniq 2>/dev/null
+    done }
+  fi
+fi
+
+
+exit 0

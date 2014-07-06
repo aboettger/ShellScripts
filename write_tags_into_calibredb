@@ -1,0 +1,36 @@
+#!/bin/bash
+#===============================================================================
+#
+#  USAGE: write_tags_into_calibredb
+#  REQUIREMENTS: calibre
+#
+#===============================================================================
+
+red="\e[0;31m"
+green="\e[0;32m"
+yellow="\e[0;33m"
+TOA="\e[0m" # No Color
+
+function logError () {
+  echo -e "${red}$1${TOA}"
+}
+
+metadata_path="$1"
+working_path=$(dirname "$1")
+
+if [ ! -f "$metadata_path" ]; then
+  logError "metadata.opf not found ($metadata_path)"
+else
+  # <dc:identifier opf:scheme="calibre" id="calibre_id">1752</dc:identifier>
+  calibre_id=$(xpath -q -e "//package/metadata/dc:identifier[@id='calibre_id']/text()" "$metadata_path")
+fi
+
+#echo "$calibre_id"
+#echo "$working_path"
+pdf_path=$(find "$working_path" -depth -type f -name "*.pdf")
+
+tags=$(create_railroad_keywords_from_pdf "$pdf_path" | tr '\n' ',')
+#echo "$tags"
+calibredb set_metadata --field tags:"$tags" "$calibre_id"
+ebook-meta "$pdf_path" --tags="$tags"
+exit 0

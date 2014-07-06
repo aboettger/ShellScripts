@@ -35,7 +35,7 @@ find "$1" -depth  -type d | { while read -r D;
         if [ ! -f "${xmp%.*}" ]
         then
           echo "xmp ($xmp) vorhanden, aber kein passendes Bild ${xmp%.*}"
-	  rm "$xmp"
+          rm "$xmp"
         fi
     done }
 done }

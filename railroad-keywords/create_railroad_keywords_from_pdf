@@ -23,6 +23,28 @@ function logError () {
   echo -e "${red}$1${TOA}"
 }
 
+function runSearch () {
+  test_case="$1"
+
+  echo "$test_case"
+  pattern=$(less "$test_case" | grep 'pattern=' | gawk  -F 'pattern=' '{print $2}')
+  #logInfo "$pattern"
+  test_results=$(less "$test_case" | sed '/^pattern=/d' | sed '/^$/d' | sed '/^#/ d' | grep -oaE "$pattern" | sed -e 's/^ *//' | sed -e 's/ *$//' | sed '/^$/d' | uniq)
+  echo "$test_results"
+  matched_elements=$(echo "$test_results" | sed '/^$/d' | wc -l)
+  given_elements=$(less "$test_case" | sed '/^pattern=/d' | sed '/^$/d' | sed '/^#/ d' | wc -l)
+  logInfo "TestCase: $(basename "$test_case")"
+  if test "$matched_elements" -lt "$given_elements"; then
+    logError "Test failed, to few elements found: $matched_elements/$given_elements"
+    exit 1
+  elif test "$matched_elements" -gt "$given_elements"; then
+    logError "Test failed, to many elements found: $matched_elements/$given_elements"
+    exit 1
+  else
+    logInfo "Test OK: $matched_elements/$given_elements"
+  fi
+}
+
 
 test_path="$2"
 
@@ -30,31 +52,19 @@ if [ "$1" == "test" ]; then
 
   test_path="$2"
 
-  if [ ! -d "$test_path" ]; then
+  if [ ! -d "$test_path" ] && [ ! -d "$(dirname "$test_path")" ]; then
     echo "Kein Verzeichnis mit Testdaten gefunden ($test_path)"
     exit 1
   fi
 
-  find "$test_path" -type f -name 'test-*.txt' | { while read -r test_case;
-    do
-      echo "$test_case"
-      pattern=$(less "$test_case" | grep 'pattern=' | gawk  -F 'pattern=' '{print $2}')
-      #logInfo "$pattern"
-      test_results=$(less "$test_case" | sed '/^pattern=/d' | sed '/^$/d' | sed '/^#/ d' | grep -oaE "$pattern" | sed -e 's/^ *//' | sed -e 's/ *$//' | sed '/^$/d' | sort -b | uniq)
-      #echo "$test_results"
-      matched_elements=$(echo "$test_results" | sed '/^$/d' | wc -l)
-      given_elements=$(less "$test_case" | sed '/^pattern=/d' | sed '/^$/d' | sed '/^#/ d' | wc -l)
-      logInfo "TestCase: $(basename "$test_case")"
-      if test "$matched_elements" -lt "$given_elements"; then
-        logError "Test failed, to few elements found: $matched_elements/$given_elements"
-        exit 1
-      elif test "$matched_elements" -gt "$given_elements"; then
-        logError "Test failed, to many elements found: $matched_elements/$given_elements"
-        exit 1
-      else
-        logInfo "Test OK: $matched_elements/$given_elements"
-      fi
-  done }
+  if [ -f "$test_path" ]; then
+    runSearch "$test_path"
+  else
+    find "$test_path" -type f -name 'test-*.txt' | { while read -r test_case;
+      do
+        runSearch "$test_case"
+    done }
+  fi
 elif [ "$1" == "run" ]; then
   if [ ! -d "$test_path" ]; then
     echo "Kein Verzeichnis mit RegEx-Dateien gefunden ($test_path)"

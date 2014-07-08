@@ -72,9 +72,33 @@ elif [ "$1" == "run" ]; then
   fi
 
   if [ ! -f "$3" ]; then
-    logError "File not found \"$3\""
+    logError "PDF not found \"$3\""
     exit 1
   else
+    pdf_filename=$(basename "$3")
+    pdf_filename="${pdf_filename%.*}"
+    # echo "$pdf_filename"
+    if [ -f "$(pwd)/$pdf_filename.md5" ]; then
+      md5_current=$(cat "$(pwd)/$pdf_filename.md5")
+    fi
+    echo "$md5_current"
+    md5_new=$(md5sum "$3"  | gawk  -F ' ' '{print $1}')
+    echo "$md5_new"
+    if [ "$md5_current" == "$md5_new" ]; then
+      logInfo "\"$(basename "$3")\" scheint sich seit dem letzten Durchlauf nicht geändert zu haben."
+      logInfo "Versuche bestehende \"$pdf_filename.txt\" zu verwenden."
+    else
+      logInfo "Schreibe \"$pdf_filename.md5\"."
+      echo "$md5_new" > "$(pwd)/$pdf_filename.md5"
+
+      logInfo "Schreibe \"$pdf_filename.txt\"."
+      pdftotext -q "$3" "$(pwd)/$pdf_filename.txt"
+    fi
+    if [ ! -f "$(pwd)/$pdf_filename.txt" ]; then
+      logWarn "\"$pdf_filename.txt\" nicht gefunden. schreibe \"$pdf_filename.txt\" neu."
+      pdftotext -q "$3" "$(pwd)/$pdf_filename.txt"
+    fi
+
     find "$test_path" -type f -name 'test-*.txt' | { while read -r test_case;
     do
       # remove UTF8 NO-BREAK
@@ -83,9 +107,10 @@ elif [ "$1" == "run" ]; then
       # remove UTF8 ZERO WIDTH SPACE
       CHARS=$(python -c 'print u"\u00A0\u2009\u200A\u200B".encode("utf8")')
       pattern=$(less "$test_case" | grep 'pattern=' | gawk  -F 'pattern=' '{print $2}')
-      #echo "$pattern"
-      #pdftotext -q "$3" - | tr -d '\2009' | tr -d '\200A' | tr -d '\200B' | tr '\n' ' ' | sed -e "s/[[:space:]]\{2,\}/ /g" | grep -oaE "$pattern" | sed '/^$/d' | sed -e 's/^ *//' | sed -e 's/ *$//' | sed -e "s/^Baureihe/BR/" | sort -b | uniq  2>/dev/null
-      pdftotext -q "$3" - | sed 's/['"$CHARS"']/ /g' | tr '\n' ' ' | sed -e "s/[[:space:]]\{2,\}/ /g" | grep -oaE "$pattern" | sed '/^$/d' | sed -e 's/^ *//' | sed -e 's/ *$//' | sed -e 's/[.,]*$//' | sort -b | uniq 2>/dev/null
+      # echo "$test_case"
+      # echo "$pattern"
+      # pdftotext -q "$3" - | tr -d '\2009' | tr -d '\200A' | tr -d '\200B' | tr '\n' ' ' | sed -e "s/[[:space:]]\{2,\}/ /g" | grep -oaE "$pattern" | sed '/^$/d' | sed -e 's/^ *//' | sed -e 's/ *$//' | sed -e "s/^Baureihe/BR/" | sort -b | uniq  2>/dev/null
+      less "$(pwd)/$pdf_filename.txt" | sed 's/['"$CHARS"']/ /g' | sed -e "s/[[:space:]]\{2,\}/ /g" | grep -oaE "$pattern" | sed '/^$/d' | sed -e 's/^ *//' | sed -e 's/ *$//' | sed -e 's/[.,]*$//' | sed -e 's/^[\-]*//' | sort -b | uniq 2>/dev/null
     done }
   fi
 fi

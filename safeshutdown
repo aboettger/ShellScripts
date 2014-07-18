@@ -47,18 +47,16 @@ echo
 echo -e "Uptime (ms) [${green}$minUptime${TOA}]: \c"; if [ "$secUp" -gt $minUptime ]; then echo -e "${green}$uptime ($uptimeHuman)${TOA}"; else echo -e "${yellow}$uptime ($uptimeHuman)${TOA}"; fi
 echo
 
+my_pids=$(find "/home/aboettger/running" -type f -name '*.pid' | wc -l)
+echo -e "PIDs in \"/home/aboettger/running\": \c"; if [ "$my_pids" -eq 0 ]; then echo -e "${green}$my_pids${TOA}"; else echo -e "${yellow}$my_pids${TOA}"; fi
+echo
+
 # mehr als eine Stunde uptime
-if [ "$secUp" -gt $minUptime ] && [ "$pidrsync" == "" ] && [ "$pidaria2c" == "" ] && [ "$pidwget" == "" ]
-then
-  if [ "$userLen" -eq 0 ]
-  then
-    /sbin/shutdown -P now
-    echo -e "${green}shutdown${TOA}"
-  else
-    echo -e "${yellow}no shutdown (users > 0)${TOA}"
-  fi
+if [ "$secUp" -gt $minUptime ] && [ "$pidrsync" == "" ] && [ "$pidaria2c" == "" ] && [ "$pidwget" == "" ] && [ "$my_pids" -eq 0 ] && [ "$userLen" -eq 0 ]; then
+  /sbin/shutdown -P now
+  echo -e "${green}shutdown${TOA}"
 else
-  echo -e "${yellow}uptime < $minUptime | PID [rsync] > 0 | PID [aria2c] > 0 | PID [wget] > 0)${TOA}"
+  echo -e "${yellow}no shutdown${TOA}"
 fi
 echo
 exit 0

@@ -47,7 +47,7 @@ find "$search_root" -type f -name '*.pdf' | {
     # if [ ! -z "$keywords" ]; then
       echo "$pdf_path"
       keywords=${keywords//Baureihe/BR}
-      keywords=$(echo "$keywords" | sort | uniq | tr '\n' ',' | sed -e 's/,$//')
+      keywords=$(echo "$keywords" | sort | uniq | tr '\n' ',' | sed -e 's/^,//g' | sed -e 's/,$//g' | sed -e 's/,{2,}//')
       # keywords=$(echo "$keywords" | sort | uniq | sed -e 's/\n/, /' | sed -e 's/, $//')
       # echo "$keywords"
       

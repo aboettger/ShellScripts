@@ -3,6 +3,11 @@
 # Scans the given directory and all subdirectories for the file
 # "metadata.opf". This file is created by Calibre. From this file data will be
 # written into the PDFs, which are exactly in the same directory.
+# 
+# 
+#  REQUIREMENTS: calibre by KOVID GOYAL (http://calibre-ebook.com/)
+# 
+
 
 
 shopt -s nullglob

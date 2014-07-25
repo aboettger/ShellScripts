@@ -2,109 +2,26 @@
 #
 # Scans the given directory and all subdirectories for the file
 # "metadata.opf". This file is created by Calibre. From this file data will be
-# extracted (title, author, series, keywords) and inserted into the PDFs, which are
-# exactly in the same directory.
+# written into the PDFs, which are exactly in the same directory.
 
 
 shopt -s nullglob
 shopt -s nocaseglob
 
-# Enable alias expansion in command substitution
-shopt -s expand_aliases
-
-red="\e[0;31m"
-green="\e[0;32m"
-yellow="\e[0;33m"
-TOA="\e[0m" # No Color
-
-# Vefify that we have gettext available
-gettext "Bye." &> /dev/null
-if [ $? -gt 0 ]; then
-  alias ck_gettext="echo -e"
-else
-  alias ck_gettext="gettext -s --"
-fi
-
-# Prints OK or FAILED! depending on previous command return value
-function okfail () {
-  if [ $? -gt 0 ]; then
-    logError "There was an error. Aborting."
-    return 1
-  else
-    logInfo "OK"
-    return 0
-  fi
-}
-
-function logInfo () {
-  echog "${green}$1${TOA}"
-}
-
-function logWarn () {
-  echog "${yellow}$1${TOA}"
-}
-
-function logError () {
-  echog "${red}$1${TOA}"
-}
-
-## echo with newline at the end
-function echog() {
-  local format="$1"
-  shift
-  printf -- "$(ck_gettext "$format")\n" "$@" >&2
-}
 
 write_metadata() {
   find "$1" -depth -type f -name "metadata.opf" | { while read -r metadata_path;
     do
-      echo -e "${green}metadata found:${TOA} $metadata_path"
+      echo "metadata found: $metadata_path"
       dir_name=$(dirname "$metadata_path")
-
-      series=$(xpath -q -e "//package/metadata/meta[@name='calibre:series']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
-      series_index=$(xpath -q -e "//package/metadata/meta[@name='calibre:series_index']/@content" "$metadata_path" | awk -F "content=" '{print $2}' | sed 's/^\"*//;s/\"*$//')
-
-      title=$(xpath -q -e "//package/metadata/dc:title/text()" "$metadata_path")
-      author=$(xpath -q -e "//package/metadata/dc:creator/text()" "$metadata_path")
-      keywords=$(xpath -q -e "//package/metadata/dc:subject/text()" "$metadata_path")
 
       pdfs=$(find "$dir_name" -maxdepth 1 -type f -name '*.pdf' | wc -l)
 
-      echo -e "${green}pdfs found:${TOA} $pdfs"
+      echo "pdfs found: $pdfs"
 
       find "$dir_name" -maxdepth 1 -type f -name "*.pdf" | { while read -r pdf_path;
         do
-          titlePDF=$(pdfinfo "$pdf_path" | grep "Title" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
-          authorPDF=$(pdfinfo "$pdf_path" | grep "Author" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/^[ \t]*//;s/[ \t]*$//')
-          keywordsPDF=$(exiftool -S -Keywords "$pdf_path" | grep "Keywords" | awk '{sub(/[^ ]+ /, ""); print $0}' | sed 's/\./\n/g' | sed 's/^[ \t]*//;s/[ \t]*$//')
-
-          newTitle=$(echo "$title $series_index" | sed 's/^[ \t]*//;s/[ \t]*$//')
-          newAuthor=$(echo "$author" | sed 's/^[ \t]*//;s/[ \t]*$//')
-          newKeywords=$(echo "$keywords" | sed 's/^[ \t]*//;s/[ \t]*$//')
-
-          if [ "$titlePDF" == "$newTitle" ] && [ "$authorPDF" == "$newAuthor" ] && [ "$keywordsPDF" == "$newKeywords" ]
-          then
-            echo -e "\t${green}no update required.${TOA}"
-          else
-            if [ "$titlePDF" != "$newTitle" ]
-            then
-              exiftool -overwrite_original -Title="$newTitle" "$pdf_path"
-              okfail; [ $? -gt 0 ] && exit 1
-              echo -e "\t${green}updating title with:${TOA} $newTitle"
-            fi
-            if [ "$authorPDF" != "$newAuthor" ]
-            then
-              exiftool -overwrite_original -Author="$newAuthor" "$pdf_path"
-              okfail; [ $? -gt 0 ] && exit 1
-              echo -e "\t${green}updating author with:${TOA} $newAuthor"
-            fi
-            if [ "$keywordsPDF" != "$newKeywords" ]
-            then
-              exiftool -overwrite_original -Keywords="$newKeywords" "$pdf_path"
-              okfail; [ $? -gt 0 ] && exit 1
-              echo -e "\t${green}updating keywords with:${TOA} $newKeywords"
-            fi
-          fi
+          ebook-meta --from-opf="$metadata_path" "$pdf_path" 2>/dev/null
         done
         echo
       }
@@ -122,6 +39,5 @@ else
 fi
 
 write_metadata "$search_path"
-notify-send "$(basename "$0")" 'done'
 
 exit 0

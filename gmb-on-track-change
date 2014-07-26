@@ -110,8 +110,17 @@ else
   okfail; [ $? -gt 0 ] && exit 1
 
   picardWindowId=""
+  kill_time=$(date -d "+10 seconds" +%s)
+
   while [ "$picardWindowId" == "" ]
   do
+    current_time=$(date "+%s")
+    
+    if [ "$current_time" -gt "$kill_time" ]; then
+      echo "timeout, can't start picard"
+      exit 1
+    fi
+    
     picardWindowId=$(wmctrl -lp | grep "$pid" | awk '{print $1}')
   done
   xdotool windowminimize "$picardWindowId"
@@ -119,4 +128,3 @@ else
 fi
 
 exit 0
-

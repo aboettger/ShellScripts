@@ -42,12 +42,8 @@ else
     echo -e "${yellow}$workingDir${NC}"
     cd "$workingDir"
 #    echo -e "${green}$(git pull)${NC}"
-check=$(git log HEAD..origin)
-echo $check
-
+    check=$(git log HEAD..origin)
+    echo "$check"
     echo
   done
 fi
-
-
-

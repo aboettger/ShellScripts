@@ -41,7 +41,7 @@ add_cover() {
 
       echo -e "${green}FLACs found:${NC} $flacs"
 
-      if [ "$flacs" != "0" ]
+      if [[ $flacs != "0" ]]
       then
         find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 | xargs -0 metaflac --remove --block-type=PICTURE
         find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 | xargs -0 metaflac --import-picture-from="$image_path"
@@ -60,7 +60,12 @@ then
   echo "Please specify a start directory."
   notify-send -i error "$(basename "$0")" "Please specify a start directory."
 else
-  # PNGs werden bevorzugt
+  if [[ ! -f "$1/cover.png" ]] && [[ ! -f "$1/cover.jpg" ]] ; then
+    notify-send -i error "$(basename "$0")" "No images found (cover.png, cover.jpg)."
+    echo "No images found (cover.png, cover.jpg)."
+    exit 1
+  fi
+  # PNGs werden bevorzugt  
   add_cover "$1" cover.png
   add_cover "$1" cover.jpg
 fi

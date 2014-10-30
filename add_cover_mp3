@@ -41,7 +41,7 @@ add_cover() {
 
       echo -e "${green}MP3s found:${NC} $mp3s"
 
-      if [ "$mp3s" != "0" ]
+      if [[ $mp3s != "0" ]]
       then
         find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 | xargs -0 eyeD3 --remove-images
         find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 | xargs -0 eyeD3 -F '~' --add-image="$image_path"~FRONT_COVER
@@ -60,6 +60,11 @@ then
   echo "Please specify a start directory."
   notify-send -i error "$(basename "$0")" "Please specify a start directory."
 else
+  if [[ ! -f "$1/cover.png" ]] && [[ ! -f "$1/cover.jpg" ]] ; then
+    notify-send -i error "$(basename "$0")" "No images found (cover.png, cover.jpg)."
+    echo "No images found (cover.png, cover.jpg)."
+    exit 1
+  fi
   # PNGs werden bevorzugt
   add_cover "$1" cover.png
   add_cover "$1" cover.jpg

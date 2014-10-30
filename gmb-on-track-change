@@ -23,6 +23,11 @@
 #===============================================================================
 #
 
+command -v xdotool >/dev/null 2>&1 || { notify-send -i error "$(basename "$0")" "\"xdotool\" required, but not installed."; echo "\"xdotool\" required, but not installed."; exit 1; }
+command -v wmctrl >/dev/null 2>&1 || { notify-send -i error "$(basename "$0")" "\"wmctrl\" required, but not installed."; echo "\"wmctrl\" required, but not installed."; exit 1; }
+command -v picard >/dev/null 2>&1 || { notify-send -i error "$(basename "$0")" "\"picard\" required, but not installed."; echo "\"picard\" required, but not installed."; exit 1; }
+
+
 function okfail () {
   if [ $? -gt 0 ]; then
     return 1
@@ -51,9 +56,6 @@ then
 else
   pathNameHistory="$2"
 fi
-
-fileNameHistory=$(basename "$pathNameHistory")
-dirNameHistory=$(dirname "$pathNameHistory")
 
 if [ "$3" == "" ]
 then
@@ -91,9 +93,8 @@ then
 else
   dirEscaped=${dir//\[/\\[}
   dirEscaped=${dirEscaped//\]/\\]}
-#  dirEscaped=${dirEscaped//\?/\\?}
   dirEscaped=${dirEscaped//\^/\\^}
-  dirEscaped=${dirEscaped//\$/\\$}
+  dirEscaped=${dirEscaped//\$/\\\$}
 
   matchedValue=$(grep "$dirEscaped" "$pathNameHistory")
 fi
@@ -124,7 +125,6 @@ else
     picardWindowId=$(wmctrl -lp | grep "$pid" | awk '{print $1}')
   done
   xdotool windowminimize "$picardWindowId"
-#   xdotool search --pid "$pid"  --name '\*' windowminimize
 fi
 
 exit 0

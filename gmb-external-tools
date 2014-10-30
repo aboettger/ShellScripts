@@ -6,7 +6,7 @@ EXTERNAL_TOOLS=$(yad --center --list --no-headers --class="GMB-External-Tools" -
 "Open with Picard" "Open with Ex Falso" "Open with Easy TAG" "Open Terminal" "Add cover mp3/flac" "" \
 --width=350 --height=270 --title="External Tools - GMB" --button="Close:1" --button="gtk-ok:0")
 
-EXTERNAL_TOOLS_fix=$("$EXTERNAL_TOOLS" | sed -e "s/|//")
+EXTERNAL_TOOLS_fix=$(sed -e "s/|//" <<< "$EXTERNAL_TOOLS")
 
 if [[ $EXTERNAL_TOOLS_fix = "Open with Picard" ]]; then
   # gmb-call-picard ermittelt den Verzeichnisnamen selbst

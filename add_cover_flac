@@ -43,8 +43,8 @@ add_cover() {
 
       if [ "$flacs" != "0" ]
       then
-        find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --remove --block-type=PICTURE
-        find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 |xargs -0 metaflac --import-picture-from="$image_path"
+        find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 | xargs -0 metaflac --remove --block-type=PICTURE
+        find "$dir_name" -type f -maxdepth 1 -name "*.flac" -print0 | xargs -0 metaflac --import-picture-from="$image_path"
 
         rm "$image_path"
       fi
@@ -53,15 +53,18 @@ add_cover() {
   }
 }
 
-if [ "$1" == "" ]
+command -v metaflac >/dev/null 2>&1 || { notify-send -i error "$(basename "$0")" "\"metaflac\" required, but not installed."; echo "\"metaflac\" required, but not installed."; exit 1; }
+
+if [[ $1 == "" ]]
 then
   echo "Please specify a start directory."
+  notify-send -i error "$(basename "$0")" "Please specify a start directory."
 else
   # PNGs werden bevorzugt
   add_cover "$1" cover.png
   add_cover "$1" cover.jpg
 fi
 
-notify-send "$(basename "$0")" 'done'
+notify-send -i info "$(basename "$0")" "done"
 
 exit 0

@@ -43,8 +43,8 @@ add_cover() {
 
       if [ "$mp3s" != "0" ]
       then
-        find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 --remove-images
-        find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 |xargs -0 eyeD3 -F '~' --add-image="$image_path"~FRONT_COVER
+        find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 | xargs -0 eyeD3 --remove-images
+        find "$dir_name" -maxdepth 1 -type f -name "*.mp3" -print0 | xargs -0 eyeD3 -F '~' --add-image="$image_path"~FRONT_COVER
 
         rm "$image_path"
       fi
@@ -53,15 +53,18 @@ add_cover() {
   }
 }
 
+command -v metaflac >/dev/null 2>&1 || { notify-send -i error "$(basename "$0")" "\"eyeD3\" required, but not installed."; echo "\"eyeD3\" required, but not installed."; exit 1; }
+
 if [ "$1" == "" ]
 then
   echo "Please specify a start directory."
+  notify-send -i error "$(basename "$0")" "Please specify a start directory."
 else
   # PNGs werden bevorzugt
   add_cover "$1" cover.png
   add_cover "$1" cover.jpg
 fi
 
-notify-send "$(basename "$0")" 'done'
+notify-send -i info "$(basename "$0")" 'done'
 
 exit 0

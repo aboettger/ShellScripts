@@ -49,6 +49,17 @@ if [ "$(ls -A "$dir")" == "" ]; then
   exit 1
 fi
 
+# http://musicbrainz.org/ws/2/release/011ae209-eb8d-33c2-8d87-7999f1a97ab0?inc=recordings&fmt=json
+# releaseId=""
+# for filename in *.mp3; do
+#   nextReleaseId=$(eyeD3 "$filename" | grep -A 1 'UserTextFrame.*\[Description: MusicBrainz Album Id\]' | tail -1)
+#   if [[ $releaseId != $nextReleaseId ]]; then
+#     echo "http://musicbrainz.org/ws/2/release/$nextReleaseId?inc=recordings&fmt=json"
+#     curl "http://musicbrainz.org/ws/2/release/$nextReleaseId?inc=recordings&fmt=json" > "$nextReleaseId".json
+#     releaseId="$nextReleaseId"
+#   fi
+# done
+
 pathNameHistory=""
 if [ "$2" == "" ]
 then
@@ -63,6 +74,13 @@ then
 else
   deleteAfterHours="$3"
 fi
+
+if [[ $4 == "" ]]; then
+  picardWindowsMax="10"
+else
+  picardWindowsMax="$4"
+fi
+
 
 lineFound="1"
 while [ "$lineFound" == "1" ]
@@ -104,27 +122,33 @@ if [ "$matchedValue" != "" ]
 then
   echo "----- Don't call picard, the album '$dir' is already in the list of recently played albums: '$pathNameHistory'"
 else
-  echo "+++++ Call picard, the album '$dir' is not in the list of recently played albums: '$pathNameHistory'"
-  echo "$(date +%s):$dir" >> "$pathNameHistory"
-  picard "$dir" &
-  pid=$!
-  okfail; [ $? -gt 0 ] && exit 1
+  picardWindows=$(wmctrl -l | grep -c "MusicBrainz Picard")
+  if [[ ! $picardWindows -lt  $picardWindowsMax ]]; then
+    echo "----- Don't call picard, to many open instances ($picardWindows/$picardWindowsMax)"
+    notify-send -i info --hint int:transient:1 "$(basename "$0")" "Don't call picard, to many open instances ($picardWindows/$picardWindowsMax)"
+  else
+    echo "+++++ Call picard, the album '$dir' is not in the list of recently played albums: '$pathNameHistory'"
+    echo "$(date +%s):$dir" >> "$pathNameHistory"
+    picard "$dir" &
+    pid=$!
+    okfail; [ $? -gt 0 ] && exit 1
 
-  picardWindowId=""
-  kill_time=$(date -d "+10 seconds" +%s)
+    picardWindowId=""
+    kill_time=$(date -d "+10 seconds" +%s)
 
-  while [ "$picardWindowId" == "" ]
-  do
-    current_time=$(date "+%s")
-    
-    if [ "$current_time" -gt "$kill_time" ]; then
-      echo "timeout, can't start picard"
-      exit 1
-    fi
-    
-    picardWindowId=$(wmctrl -lp | grep "$pid" | awk '{print $1}')
-  done
-  xdotool windowminimize "$picardWindowId"
+    while [ "$picardWindowId" == "" ]
+    do
+      current_time=$(date "+%s")
+      
+      if [ "$current_time" -gt "$kill_time" ]; then
+        echo "timeout, can't start picard"
+        exit 1
+      fi
+      
+      picardWindowId=$(wmctrl -lp | grep "$pid" | awk '{print $1}')
+    done
+    xdotool windowminimize "$picardWindowId"
+  fi
 fi
 
 exit 0

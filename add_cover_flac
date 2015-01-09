@@ -58,7 +58,7 @@ command -v metaflac >/dev/null 2>&1 || { notify-send -i error "$(basename "$0")"
 if [[ $1 == "" ]]
 then
   echo "Please specify a start directory."
-  notify-send -i error "$(basename "$0")" "Please specify a start directory."
+  notify-send -i error --hint int:transient:1 "$(basename "$0")" "Please specify a start directory."
 else
   if [[ ! -f "$1/cover.png" ]] && [[ ! -f "$1/cover.jpg" ]] ; then
     notify-send -i error "$(basename "$0")" "No images found (cover.png, cover.jpg)."
@@ -70,6 +70,6 @@ else
   add_cover "$1" cover.jpg
 fi
 
-notify-send -i info "$(basename "$0")" "done"
+notify-send -i info --hint int:transient:1 "$(basename "$0")" "done"
 
 exit 0

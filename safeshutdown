@@ -34,7 +34,9 @@ pidrsync=$(ps -C rsync -o pid=)
 pidaria2c=$(ps -C aria2c -o pid=)
 
 secUp=$(awk '{print $1 * 1000}' /proc/uptime)
-userLen=$(last -w | grep "still logged in" | sed "/^(unknown)/d" | wc -l ) 
+userLen=$(last -w | grep "still logged in" | sed "/^(unknown)/d" | wc -l )
+
+# ck-history --last | grep "still logged in"
 
 echo
 echo -e "PID [${green}wget${TOA}]: ${yellow}$pidwget${TOA}"

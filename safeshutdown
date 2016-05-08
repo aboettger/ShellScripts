@@ -26,16 +26,17 @@ yellow="\e[0;33m"
 TOA="\e[0m" # No Color
 
 minUptime=3600000
-uptime=$(awk '{print $1*1000}' /proc/uptime)
+uptime=$(awk '{OFMT = "%.0f"; printf $1*1000}' /proc/uptime)
 uptimeHuman=$(uptime -p)
 
 pidwget=$(ps -C wget -o pid=)
 pidrsync=$(ps -C rsync -o pid=)
 pidaria2c=$(ps -C aria2c -o pid=)
 
-secUp=$(awk '{print $1 * 1000}' /proc/uptime)
+secUp=$(awk '{OFMT = "%.0f"; printf $1 * 1000}' /proc/uptime)
 userLen=$(last -w | grep "still logged in" | sed "/^(unknown)/d" | wc -l )
 
+echo "secUp: $secUp"
 # ck-history --last | grep "still logged in"
 
 echo
@@ -46,7 +47,14 @@ echo
 echo -e "Users: \c"; if [ "$userLen" -eq 0 ]; then echo -e "${green}$userLen${TOA}"; else echo -e "${yellow}$userLen${TOA}"; fi
 echo -e "${yellow}$(last -w | grep "still logged in" | sed "/^(unknown)/d")${TOA}"
 echo
-echo -e "Uptime (ms) [${green}$minUptime${TOA}]: \c"; if [ "$secUp" -gt $minUptime ]; then echo -e "${green}$uptime ($uptimeHuman)${TOA}"; else echo -e "${yellow}$uptime ($uptimeHuman)${TOA}"; fi
+echo -e "Uptime (ms) [${green}$minUptime${TOA}]: \c";
+
+if [ "$secUp" -gt $minUptime ]; then
+  echo -e "${green}$uptime ($uptimeHuman)${TOA}"
+else
+  echo -e "${yellow}$uptime ($uptimeHuman)${TOA}"
+fi
+
 echo
 
 my_pids=$(find "/home/aboettger/running" -type f -name '*.pid' | wc -l)
